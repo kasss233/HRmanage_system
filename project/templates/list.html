@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工列表</title>
+    {% load static %} <!-- 加载静态文件标签 -->
+    <link rel="stylesheet" href="{% static 'static/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧侧边栏 -->
+        <div class="sidebar">
+            <h2>员工管理</h2>
+            <a href="{% url 'list' %}">查看员工列表</a>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="content">
+            <h1>员工列表</h1>
+
+            <!-- 查询与排序 -->
+            <div class="search-sort-bar">
+                <form method="get" action="{% url 'list' %}">
+                    <!-- 搜索功能 -->
+                    <select name="search_by">
+                        <option value="name" {% if request.GET.search_by == "name" %}selected{% endif %}>按姓名</option>
+                        <option value="email" {% if request.GET.search_by == "email" %}selected{% endif %}>按邮箱</option>
+                        <option value="phone" {% if request.GET.search_by == "phone" %}selected{% endif %}>按电话</option>
+                    </select>
+                    <input type="text" name="q" placeholder="输入搜索内容..." value="{{ request.GET.q }}">
+                    <button type="submit">搜索</button>
+
+                    <!-- 排序功能 -->
+                    <label for="order_by">排序字段:</label>
+                    <select name="order_by" id="order_by">
+                        <option value="id" {% if request.GET.order_by == "id" %}selected{% endif %}>ID</option>
+                        <option value="name" {% if request.GET.order_by == "name" %}selected{% endif %}>姓名</option>
+                        <option value="email" {% if request.GET.order_by == "email" %}selected{% endif %}>邮箱</option>
+                        <option value="phone" {% if request.GET.order_by == "phone" %}selected{% endif %}>电话</option>
+                    </select>
+                    <label for="order_dir">排序方向:</label>
+                    <select name="order_dir" id="order_dir">
+                        <option value="asc" {% if request.GET.order_dir == "asc" %}selected{% endif %}>升序</option>
+                        <option value="desc" {% if request.GET.order_dir == "desc" %}selected{% endif %}>降序</option>
+                    </select>
+                    <button type="submit">排序</button>
+                </form>
+                <!-- 范围选取输入框 -->
+                <div class="range-fields">
+                    <label for="min">最小值:</label>
+                    <input type="number" id="min" name="min" placeholder="最小值" value="{{ request.GET.min }}">
+                    <label for="max">最大值:</label>
+                    <input type="number" id="max" name="max" placeholder="最大值" value="{{ request.GET.max }}">
+                </div>
+                <a href="{% url 'employee_add' %}"class="add-button">新增员工</a>
+                <a href="{% url 'employee_export' %}" class="export-button">导出为 CSV</a>
+            </div>
+
+            <!-- 员工列表 -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.id }}</td>
+                        <td>{{ employee.name }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.phone }}</td>
+                        <td>
+                            <a class="action-link" href="{% url 'employee_edit' employee.id %}">编辑</a>
+                            <form class="delete-form" method="post" action="{% url 'employee_delete' employee.id %}" onsubmit="return confirm('确定删除该员工吗？');">
+                                {% csrf_token %}
+                                <button type="submit" class="delete-button">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="no-data">No employees found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑员工</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* 背景半透明 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .popup-container {
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .popup-container h1 {
+            font-size: 20px;
+            color: #444;
+            margin-bottom: 20px;
+        }
+        .popup-container form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        form input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .popup-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .popup-container button:hover {
+            background-color: #45a049;
+        }
+        .popup-container .cancel-btn {
+            display: inline-block;
+            margin-top: 15px;
+            text-align: center;
+            color: #555;
+            text-decoration: none;
+        }
+        .popup-container .cancel-btn:hover {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-container">
+        <h1>编辑员工</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}  <!-- 自动生成表单字段 -->
+            <button type="submit">保存</button>
+            <a href="{% url 'list' %}" class="cancel-btn">取消</a>
+        </form>
+    </div>
+</body>
+</html>
