@@ -1,0 +1,17 @@
+{% extends 'base_create.html' %}
+
+{% block title %}Create Employee - My Django Project{% endblock %}
+
+{% block content %}
+<h1>Create a New Employee</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <!-- Display the form fields -->
+    {{ form.as_p }}
+
+    <button type="submit">保存</button>
+</form>
+
+{% endblock %}

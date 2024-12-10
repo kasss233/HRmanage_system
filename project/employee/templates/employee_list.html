@@ -1,0 +1,105 @@
+{% extends 'base_list.html' %}
+
+{% block title %}Employee List{% endblock %}
+
+{% block content %}
+    <h1>员工表单</h1>
+
+    <div class="content-wrapper">
+        <!-- 过滤表单部分 -->
+        <div class="filter-form">
+            <h2>筛选器</h2>
+            <form method="get">
+                <!-- 姓名筛选框 -->
+                <label for="id_name">姓名:</label>
+                <input type="text" name="name" id="id_name" value="{{ form.name.value }}">
+
+                <!-- 性别筛选框 -->
+                <label for="id_sex">性别:</label>
+                <select name="sex" id="id_sex">
+                    <option value="">All</option>
+                    {% for value, label in form.sex.field.choices %}
+                        <option value="{{ value }}" {% if value == form.sex.value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- 最小年龄筛选框 -->
+                <label for="id_min_age">最小年龄:</label>
+                <input type="number" name="min_age" id="id_min_age" value="{{ form.min_age.value }}">
+
+                <!-- 最大年龄筛选框 -->
+                <label for="id_max_age">最大年龄:</label>
+                <input type="number" name="max_age" id="id_max_age" value="{{ form.max_age.value }}">
+
+                <!-- 提交按钮 -->
+                <button type="submit">筛选</button>
+            </form>
+
+            <!-- 表单错误信息展示 -->
+            {% if form.errors %}
+                <div class="error-messages">
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 员工列表表格部分 -->
+        <div class="employee-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>生日</th>
+                        <th>邮箱</th>
+                        <th>电话</th>
+                        <th>地址</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                        <tr>
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.sex }}</td>
+                            <td>{{ emp.birthday }}</td>
+                            <td>{{ emp.email }}</td>
+                            <td>{{ emp.phone }}</td>
+                            <td>{{ emp.address }}</td>
+                            <td>
+                                <div class="button-container">
+                                    <!-- 更新按钮 -->
+                                    <a href="{% url 'employee_update' emp.pk %}" class="btn btn-primary">更新</a>
+                                    
+                                    <!-- 删除按钮 -->
+                                    <a href="{% url 'employee_delete' emp.pk %}" class="btn btn-danger delete-btn">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7">没有符合筛选条件的员工</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- 分页功能 -->
+            {% if employees.has_previous %}
+                <a href="?page=1">&laquo; First</a>
+                <a href="?page={{ employees.previous_page_number }}">Previous</a>
+            {% endif %}
+            <span>Page {{ employees.number }} of {{ employees.paginator.num_pages }}</span>
+            {% if employees.has_next %}
+                <a href="?page={{ employees.next_page_number }}">Next</a>
+                <a href="?page={{ employees.paginator.num_pages }}">Last &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Django Project{% endblock %}</title>
+    <!-- 引用外部CSS文件 -->
+    <link rel="stylesheet" href="{% static 'create.css' %}">
+</head>
+<body>
+
+    <!-- 页面头部 -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'employee_list' %}">员工表单</a></li>
+                <li><a href="{% url 'employee_create' %}">新增员工</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 页面内容部分 -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- 页面底部 -->
+    <footer>
+        <p>&copy; 2024 My Django Project</p>
+    </footer>
+
+</body>
+</html>

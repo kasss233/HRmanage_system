@@ -18,12 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 import testapp.views
+import employee.views
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('',testapp.views.show_list.as_view(), name='list'),
-    #path('list/',testapp.views.show_list.as_view(), name='list'),
-    path('employees/edit/<int:pk>/', testapp.views.EmployeeUpdateView.as_view(), name='employee_edit'),  # 编辑视图
-    path('employees/add/', testapp.views.EmployeeCreateView.as_view(), name='employee_add'),
-    path('delete/<int:pk>/', testapp.views.EmployeeDeleteView.as_view(), name='employee_delete'),  # 删除员工
-    path('export/', testapp.views.export_employees_csv, name='employee_export'),  # 导出功能路由
+    path("employee/",employee.views.list_view.as_view(),name="employee_list"),
+    path("employee/create/",employee.views.create_view.as_view(),name="employee_create"),
+    path("employee/delete/<int:pk>/",employee.views.delete_view.as_view(),name="employee_delete"),
+    path("employee/update/<int:pk>/",employee.views.update_view.as_view(),name="employee_update"),
 ]

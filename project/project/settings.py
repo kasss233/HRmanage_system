@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "testapp.apps.TestappConfig"
+    "testapp.apps.TestappConfig",
+    "employee.apps.EmployeeConfig"
 ]
 
 MIDDLEWARE = [
@@ -121,7 +122,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR]  # 项目根目录下的静态文件夹路径
+STATICFILES_DIRS = [BASE_DIR/"static"]  # 项目根目录下的静态文件夹路径
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
