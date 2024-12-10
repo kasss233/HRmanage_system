@@ -6,6 +6,14 @@ body {
     padding: 0;
 }
 
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    /* 根据需要调整字体大小 */
+    margin-bottom: 20px;
+    /* 控制标题与下方内容的间距 */
+}
+
 /* 页面头部样式 */
 header {
     background-color: #333;
@@ -90,7 +98,7 @@ table tr:hover {
     position: fixed;
     top: 100px;
     right: 20px;
-    width: 300px;
+    width: 200px;
     background-color: #fff;
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

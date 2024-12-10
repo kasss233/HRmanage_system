@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "testapp.apps.TestappConfig",
-    "employee.apps.EmployeeConfig"
+    "employee.apps.EmployeeConfig",
 ]
 
 MIDDLEWARE = [
@@ -78,8 +78,8 @@ WSGI_APPLICATION = "project.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "django",
-        "USER": "user",
+        "NAME": "test",
+        "USER": "test",
         "PASSWORD": "123123123",
         "HOST": "ljc666.pro",
         "PORT": "3306",
