@@ -73,9 +73,8 @@ class create_view(CreateView):
 
 class delete_view(DeleteView):
     model = employee
-    template_name = 'employee_delete.html'  # 模板文件路径
-    context_object_name = 'employee'
-    success_url = reverse_lazy('employee_list')  # 删除成功后重定向到列表视图
+    template_name = 'employee_delete.html'  # 确认删除页面模板
+    success_url = reverse_lazy('employee_list')  # 删除成功后重定向到员工列表视图
 
 
 
