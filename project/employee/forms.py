@@ -37,7 +37,7 @@ class EmployeeForm(forms.ModelForm):
 class EmployeeDeleteForm(forms.ModelForm):
     class Meta:
         model = employee
-        fields = ['name', 'sex', 'birthday', 'email', 'phone', 'address']
+        fields = ['id','name', 'sex', 'birthday', 'email', 'phone', 'address']
         widgets = {
             'birthday': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让生日字段只读
             'sex': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让性别字段只读

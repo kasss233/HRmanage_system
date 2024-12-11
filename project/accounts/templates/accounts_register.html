@@ -1,0 +1,26 @@
+{% extends 'base_list.html' %}
+
+{% block title %}注册{% endblock %}
+<header>
+    {% block header %}
+    <nav>
+        <ul>
+            <li><a href="{% url 'login' %}">首页</a></li>
+            <li><a href="{% url 'login' %}">登录</a></li>
+        </ul>
+    </nav>
+    {% endblock %}
+</header>
+{% block content %}
+<div class="login-container">
+    <div class="login-form">
+        <h2>注册</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">注册</button>
+        </form>
+        <a href="{% url 'login' %}">已有账号？登录</a>
+    </div>
+</div>
+{% endblock %}

@@ -185,3 +185,85 @@ a.btn-danger {
 a.btn-danger:hover {
     background-color: #c82333;
 }
+
+/* 登录页面容器 */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* 占满整个视窗高度 */
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* 登录表单容器 */
+.login-form {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* 登录表单标题 */
+.login-form h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #333333;
+    margin-bottom: 20px;
+}
+
+/* 表单字段样式 */
+.login-form label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555555;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* 登录按钮样式 */
+.login-form button {
+    width: 100%;
+    background-color: #3498db;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.login-form button:hover {
+    background-color: #2980b9;
+}
+
+/* 注册链接样式 */
+.login-form a {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.login-form a:hover {
+    color: #2980b9;
+}
