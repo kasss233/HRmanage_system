@@ -9,8 +9,6 @@ class EmployeeFilterForm(forms.Form):
     
     name = forms.CharField(max_length=100, required=False, label='姓名')
     sex = forms.ChoiceField(choices=SEX_CHOICES, required=False, label='性别')
-    min_age = forms.IntegerField(required=False, label='最小年龄')
-    max_age = forms.IntegerField(required=False, label='最大年龄')
     
     # 使用 SelectDateWidget 来选择生日日期（注意，birthday 这里不应该是单独的选择字段，而是通过 datepicker 提供）
     birthday = forms.DateField(

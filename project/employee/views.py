@@ -30,8 +30,6 @@ class list_view(ListView):
         # 获取查询参数，避免传入空字符串
         name = self.request.GET.get('name', '').strip()
         sex = self.request.GET.get('sex', '').strip()
-        min_age = self.request.GET.get('min_age', '').strip()
-        max_age = self.request.GET.get('max_age', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
         # 按照查询条件过滤
         if name:
@@ -41,26 +39,7 @@ class list_view(ListView):
         if birthday:
             queryset = queryset.filter(birthday=birthday)
         today = date.today()
-
-        # 计算最小年龄的过滤
-        if min_age:
-            try:
-                min_age = int(min_age)
-                min_birthday = today.replace(year=today.year - min_age)
-                queryset = queryset.filter(birthday__lte=min_birthday)
-            except ValueError:
-                # 如果转换失败，可以在这里添加错误信息，或者使用 `pass`
-                pass
-
-        # 计算最大年龄的过滤
-        if max_age:
-            try:
-                max_age = int(max_age)
-                max_birthday = today.replace(year=today.year - max_age)
-                queryset = queryset.filter(birthday__gte=max_birthday)
-            except ValueError:
-                # 同样可以在这里处理错误
-                pass
+        
 
         return queryset
 

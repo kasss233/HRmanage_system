@@ -19,10 +19,14 @@ from django.contrib import admin
 from django.urls import path
 import testapp.views
 import employee.views
+import attendance.views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("employee/",employee.views.list_view.as_view(),name="employee_list"),
     path("employee/create/",employee.views.create_view.as_view(),name="employee_create"),
     path("employee/delete/<int:pk>/",employee.views.delete_view.as_view(),name="employee_delete"),
     path("employee/update/<int:pk>/",employee.views.update_view.as_view(),name="employee_update"),
+    path("attendance/",attendance.views.list_view,name="attendance_list"),
+    path("",employee.views.list_view.as_view(),name="employee_list")
+    
 ]
