@@ -29,10 +29,9 @@ urlpatterns = [
     path("employee/delete/<int:pk>/",employee.views.delete_view.as_view(),name="employee_delete"),
     path("employee/update/<int:pk>/",employee.views.update_view.as_view(),name="employee_update"),
     path("attendance/",attendance.views.list_view,name="attendance_list"),
-    path("",employee.views.list_view.as_view(),name="employee_list"),
+    path("",accounts.views.login_view,name="login"),
     path("login/",accounts.views.login_view,name="login"),
     path("register/",accounts.views.register_view,name="register"),
     path("logout/",accounts.views.logout_view,name="logout"),
-    path("signin/",attendance.views.sign_in,name="signin"),
-    path("signout/",attendance.views.sign_out,name="signout")
+    path("sign",attendance.views.sign,name="sign"),
 ]

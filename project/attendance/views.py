@@ -4,6 +4,20 @@ from .models import Attendance
 from django.utils.decorators import method_decorator
 from .decorators import group_required
 from django.contrib.auth.decorators import login_required
+from employee.models import employee
+from django.shortcuts import render, redirect
+from django.utils.timezone import localtime
+from django.http import HttpResponse
+from .models import Attendance
+from datetime import time
+from django.utils.timezone import localtime, now
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.utils.timezone import localtime, now
+from .models import Attendance
+from employee.models import employee
+from datetime import time
 def list_view(request):
     # 获取所有考勤记录
     attendance_records = Attendance.objects.all()
@@ -35,47 +49,69 @@ def list_view(request):
         'attendance_records': page_obj,
         'query_params': request.GET.urlencode(),  # 保留查询参数用于分页
     })
-from django.shortcuts import render, redirect
-from django.utils.timezone import localtime
-from django.http import HttpResponse
-from .models import Attendance
-from datetime import time
-from django.utils.timezone import localtime, now
+
+
 @login_required
-def sign_in(request):
-    employee = request.user  # 当前登录的用户
-    current_time = localtime(now()).time()  # 获取当前时间并转换为本地时间
-    # 设定签到时间的允许范围
-    sign_in_start = time(8, 0)  # 8:00
-    sign_in_end = time(8, 30)  # 8:30
+def sign(request):
+    user = request.user
+    employee_instance = user.employee  # 假设 Employee 模型与 User 之间有一对一关系
 
-    if sign_in_start <= current_time <= sign_in_end:  # 当前时间在签到时间段内
-        # 记录签到时间
-        attendance, created = Attendance.objects.get_or_create(employee=employee, is_sign_in=False)
+    # 获取当前时间
+    current_time = localtime(now())
+    sign_in_time = None
+    sign_out_time = None
+    is_signed_in = False
+    is_signed_out = False
 
-        attendance.sign_in = localtime(now())  # 记录签到时间
-        attendance.is_sign_in = True  # 标记为已签到
-        attendance.save()
+    # 获取今天的考勤记录
+    today_attendance = Attendance.objects.filter(employee=employee_instance, date=current_time.date()).first()
 
-        return HttpResponse("签到成功！")
-    else:
-        # 当前时间不在签到范围内
-        attendance, created = Attendance.objects.get_or_create(employee=employee, is_sign_in=False)
+    if today_attendance:
+        sign_in_time = today_attendance.sign_in
+        sign_out_time = today_attendance.sign_out
+        is_signed_in = today_attendance.is_sign_in
+        is_signed_out = today_attendance.is_sign_out
 
-        attendance.is_sign_in = False  # 标记为未签到
-        attendance.save()
+    # 处理签到或签退请求
+    if request.method == 'POST':
+        if not is_signed_in:  # 如果没有签到
+            # 判断当前时间是否在签到时间段内
+            sign_in_start = time(1, 0)  # 1:00
+            sign_in_end = time(23, 30)  # 23:30
 
-        return HttpResponse("签到失败，签到时间应在8:00到8:30之间。")
-@login_required
-def sign_out(request):
-    employee = request.user  # 当前登录的用户
-    attendance = Attendance.objects.filter(employee=employee, is_sign_in=True).last()
+            if sign_in_start <= current_time.time() <= sign_in_end:
+                # 创建考勤记录或更新考勤记录
+                attendance, created = Attendance.objects.get_or_create(employee=employee_instance, is_sign_in=False)
+                attendance.date = localtime(now()).date()
+                attendance.sign_in = localtime(now())
+                attendance.is_sign_in = True
+                attendance.save()
+            else:
+                # 签到时间不在有效范围内，不执行任何操作
+                pass
+        elif not is_signed_out:  # 如果已签到但未签退
+            # 记录签退时间
+            today_attendance.sign_out = localtime(now())
+            today_attendance.is_sign_out = True
+            today_attendance.save()
 
-    if attendance:  # 如果该员工已经签到
-        attendance.sign_out = localtime(now())  # 记录签退时间
-        attendance.is_sign_out = True  # 标记为已签退
-        attendance.save()
+    # 重新获取今天的考勤记录，以便显示最新的状态
+    today_attendance = Attendance.objects.filter(employee=employee_instance, date=current_time.date()).first()
 
-        return HttpResponse("签退成功！")
-    else:
-        return HttpResponse("您尚未签到，无法签退。")
+    if today_attendance:
+        sign_in_time = today_attendance.sign_in
+        sign_out_time = today_attendance.sign_out
+        is_signed_in = today_attendance.is_sign_in
+        is_signed_out = today_attendance.is_sign_out
+
+    context = {
+        'current_time': current_time,
+        'employee': employee_instance,
+        'sign_in_time': sign_in_time,
+        'sign_out_time': sign_out_time,
+        'is_signed_in': is_signed_in,
+        'is_signed_out': is_signed_out,
+    }
+
+    return render(request, 'attendance_sign.html', context)
+

@@ -1,0 +1,32 @@
+<!-- templates/sign_in_sign_out.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>员工签到签退</h2>
+
+  <div>
+    <p>当前时间：{{ current_time }}</p>
+    <p>当前员工：{{ employee.name }}</p>
+
+    <!-- 如果未签到 -->
+    {% if not is_signed_in %}
+      <form method="POST" action="{% url 'sign' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">签到</button>
+      </form>
+    {% else %}
+      <p>您已签到，当前时间：{{ sign_in_time }}</p>
+      
+      <!-- 如果已签到但未签退 -->
+      {% if not is_signed_out %}
+        <form method="POST" action="{% url 'sign' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">签退</button>
+        </form>
+      {% else %}
+        <p>您已签退，签退时间：{{ sign_out_time }}</p>
+      {% endif %}
+    {% endif %}
+  </div>
+
+{% endblock %}
