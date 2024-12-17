@@ -22,7 +22,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)  # 登录用户
-            return redirect('home')  # 跳转到主页
+            return redirect('employee_list')  # 跳转到主页
     else:
         form = LoginForm()
     return render(request, 'accounts_login.html', {'form': form})

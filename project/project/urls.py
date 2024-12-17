@@ -21,6 +21,7 @@ import testapp.views
 import employee.views
 import attendance.views
 import accounts.views
+import attendance.views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("employee/",employee.views.list_view.as_view(),name="employee_list"),
@@ -32,4 +33,6 @@ urlpatterns = [
     path("login/",accounts.views.login_view,name="login"),
     path("register/",accounts.views.register_view,name="register"),
     path("logout/",accounts.views.logout_view,name="logout"),
+    path("signin/",attendance.views.sign_in,name="signin"),
+    path("signout/",attendance.views.sign_out,name="signout")
 ]

@@ -8,15 +8,17 @@ from .forms import EmployeeDeleteForm
 from django.urls import reverse_lazy
 from .models import employee
 from django.shortcuts import get_object_or_404, redirect
-from django.shortcuts import render
 from django.views.generic import ListView
 from datetime import date
 from .models import employee
 from .forms import EmployeeFilterForm
-
 from django.db.models import Q
-from datetime import date
-from .forms import EmployeeFilterForm
+from .decorators import group_required
+from django.utils.decorators import method_decorator
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
+from django.contrib.auth.hashers import make_password
 
 class list_view(ListView):
     model = employee
@@ -57,15 +59,37 @@ class list_view(ListView):
         return context
 
 
-
+@method_decorator(group_required('manager'), name='dispatch')
 class create_view(CreateView):
     model = employee
     template_name = 'employee_create.html'  # 模板文件路径
     form_class = EmployeeForm  # 使用自定义的表单类
     success_url = reverse_lazy('employee_list')  # 保存成功后重定向到列表视图
+    def form_valid(self, form):
+        # 首先保存员工对象
+        employee = form.save()
 
+        # 创建与员工相关联的用户
+        username = str(employee.id)  # 使用员工的ID作为用户名
+        password = str(employee.id)  # 使用员工的ID作为密码
+        
+        # 创建用户并设置密码
+        user = User.objects.create(
+            username=username,
+            password=make_password(password)  # 对密码进行加密存储
+        )
+        
+        # 将用户添加到 'employee' 组
+        employee_group = Group.objects.get(name='employee')
+        user.groups.add(employee_group)
 
+        # 将用户与员工关联
+        employee.user = user
+        employee.save()
 
+        return super().form_valid(form)
+
+@method_decorator(group_required('manager'), name='dispatch')
 class delete_view(DeleteView):
     model = employee
     template_name = 'employee_delete.html'  # 确认删除页面模板
@@ -84,7 +108,7 @@ class delete_view(DeleteView):
         employee = self.get_object()
         employee.delete()
         return redirect(self.success_url)
-
+@method_decorator(group_required('manager'), name='dispatch')
 class update_view(UpdateView):
     model = employee
     template_name = 'employee_update.html'  # 模板文件路径

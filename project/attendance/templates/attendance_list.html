@@ -37,6 +37,8 @@
                 <thead>
                     <tr>
                         <th>员工姓名</th>
+                        <th>签到状态</th>
+                        <th>签退状态</th>
                         <th>签到时间</th>
                         <th>签退时间</th>
                     </tr>
@@ -45,6 +47,8 @@
                     {% for record in attendance_records %}
                         <tr>
                             <td>{{ record.employee.name }}</td>  <!-- 显示员工姓名 -->
+                            <td>{{ record.is_signed_in }}</td>  <!-- 显示签到状态 -->
+                            <td>{{ record.is_signed_out }}</td>  <!-- 显示签退状态 -->
                             <td>{{ record.sign_in|date:"Y-m-d H:i:s" }}</td>  <!-- 显示签到时间 -->
                             <td>{{ record.sign_out|date:"Y-m-d H:i:s" }}</td>  <!-- 显示签退时间 -->
                         </tr>

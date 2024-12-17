@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from .forms import AttendanceFilterForm
 from .models import Attendance
-
+from django.utils.decorators import method_decorator
+from .decorators import group_required
+from django.contrib.auth.decorators import login_required
 def list_view(request):
     # 获取所有考勤记录
     attendance_records = Attendance.objects.all()
@@ -33,3 +35,47 @@ def list_view(request):
         'attendance_records': page_obj,
         'query_params': request.GET.urlencode(),  # 保留查询参数用于分页
     })
+from django.shortcuts import render, redirect
+from django.utils.timezone import localtime
+from django.http import HttpResponse
+from .models import Attendance
+from datetime import time
+from django.utils.timezone import localtime, now
+@login_required
+def sign_in(request):
+    employee = request.user  # 当前登录的用户
+    current_time = localtime(now()).time()  # 获取当前时间并转换为本地时间
+    # 设定签到时间的允许范围
+    sign_in_start = time(8, 0)  # 8:00
+    sign_in_end = time(8, 30)  # 8:30
+
+    if sign_in_start <= current_time <= sign_in_end:  # 当前时间在签到时间段内
+        # 记录签到时间
+        attendance, created = Attendance.objects.get_or_create(employee=employee, is_sign_in=False)
+
+        attendance.sign_in = localtime(now())  # 记录签到时间
+        attendance.is_sign_in = True  # 标记为已签到
+        attendance.save()
+
+        return HttpResponse("签到成功！")
+    else:
+        # 当前时间不在签到范围内
+        attendance, created = Attendance.objects.get_or_create(employee=employee, is_sign_in=False)
+
+        attendance.is_sign_in = False  # 标记为未签到
+        attendance.save()
+
+        return HttpResponse("签到失败，签到时间应在8:00到8:30之间。")
+@login_required
+def sign_out(request):
+    employee = request.user  # 当前登录的用户
+    attendance = Attendance.objects.filter(employee=employee, is_sign_in=True).last()
+
+    if attendance:  # 如果该员工已经签到
+        attendance.sign_out = localtime(now())  # 记录签退时间
+        attendance.is_sign_out = True  # 标记为已签退
+        attendance.save()
+
+        return HttpResponse("签退成功！")
+    else:
+        return HttpResponse("您尚未签到，无法签退。")
