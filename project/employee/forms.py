@@ -1,6 +1,6 @@
 from django import forms
 from .models import employee
-
+from django.forms.widgets import TextInput
 class EmployeeFilterForm(forms.Form):
     SEX_CHOICES = [
         ('男', '男'),
@@ -44,7 +44,7 @@ class EmployeeFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)
-        
+        print(f"User groups: {user.groups.all()}")
         # 如果当前用户是部门经理，限制部门选择为当前用户所属的部门
         if user and user.groups.filter(name='department_manager').exists():  # 判断是否为部门经理
             try:
@@ -56,6 +56,8 @@ class EmployeeFilterForm(forms.Form):
                 self.fields['department'].choices = [(current_department, current_department)]
                 # 禁用部门选择字段
                 self.fields['department'].disabled = True  # 禁用字段，不可编辑
+                # 使用 TextInput 显示部门名称，并使其不可编辑
+                self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
                 print("部门经理的部门是", current_department)
             except employee.DoesNotExist:
                 print("没有找到对应的员工信息")

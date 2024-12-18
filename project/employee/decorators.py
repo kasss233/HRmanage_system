@@ -1,18 +1,15 @@
-from django.http import HttpResponseForbidden
-from functools import wraps
-from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import user_passes_test
 
-def group_required(group_name):
+def group_required(*groups):
     """
-    自定义装饰器：检查用户是否属于指定的用户组
+    Decorator to check if the user is in one of the given groups.
+    :param groups: One or more group names.
     """
     def decorator(view_func):
-        @wraps(view_func)
-        @login_required  # 确保用户已登录
-        def wrapper(request, *args, **kwargs):
-            if request.user.groups.filter(name=group_name).exists():
-                return view_func(request, *args, **kwargs)
-            else:
-                return HttpResponseForbidden("您没有权限访问此页面！")
-        return wrapper
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.groups.filter(name__in=groups).exists():
+                raise PermissionDenied
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
     return decorator

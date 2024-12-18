@@ -25,7 +25,7 @@ class list_view(ListView):
     template_name = 'employee_list.html'
     context_object_name = 'employees'
     paginate_by = 10  # 每页显示10条记录
-    
+
     def get_queryset(self):
         queryset = employee.objects.all()
 
@@ -34,6 +34,7 @@ class list_view(ListView):
         sex = self.request.GET.get('sex', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
         department = self.request.GET.get('department', '').strip()
+
         # 按照查询条件过滤
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -43,26 +44,23 @@ class list_view(ListView):
             queryset = queryset.filter(birthday=birthday)
         if department:
             queryset = queryset.filter(department=department)
-        today = date.today()
-        
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # 添加筛选表单数据，并传递 GET 请求中的参数
-        context['form'] = EmployeeFilterForm(self.request.GET)
-        
+
+        # 将当前用户传递给表单
+        context['form'] = EmployeeFilterForm(self.request.GET, user=self.request.user)
+
         # 保持分页状态的查询参数（确保翻页时不丢失筛选条件）
         query_params = self.request.GET.copy()
-        query_params['page'] = self.request.GET.get('page')
+        query_params['page'] = self.request.GET.get('page', 1)  # 防止分页为空
         context['query_params'] = query_params.urlencode()
 
         return context
 
-
-@method_decorator(group_required('manager'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class create_view(CreateView):
     model = employee
     template_name = 'employee_create.html'  # 模板文件路径
@@ -81,7 +79,8 @@ class create_view(CreateView):
             username=username,
             password=make_password(password)  # 对密码进行加密存储
         )
-        
+        employee.user = user
+        employee.save()
         # 将用户添加到 'employee' 组
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
@@ -96,13 +95,10 @@ class create_view(CreateView):
             employee_group = Group.objects.get(name='group_leader')
             employee.user.groups.add(employee_group)
         
-        # 将用户与员工关联
-        employee.user = user
-        employee.save()
 
         return super().form_valid(form)
 
-@method_decorator(group_required('manager'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class delete_view(DeleteView):
     model = employee
     template_name = 'employee_delete.html'  # 确认删除页面模板
@@ -121,7 +117,7 @@ class delete_view(DeleteView):
         employee = self.get_object()
         employee.delete()
         return redirect(self.success_url)
-@method_decorator(group_required('manager'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class update_view(UpdateView):
     model = employee
     template_name = 'employee_update.html'  # 模板文件路径
