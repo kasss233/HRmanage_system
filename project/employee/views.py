@@ -28,13 +28,14 @@ class list_view(ListView):
 
     def get_queryset(self):
         queryset = employee.objects.all()
-
+        user = self.request.user
         # 获取查询参数，避免传入空字符串
         name = self.request.GET.get('name', '').strip()
         sex = self.request.GET.get('sex', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
         department = self.request.GET.get('department', '').strip()
-
+        if user.groups.filter(name='department_manager').exists():
+            department = user.employee.department
         # 按照查询条件过滤
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -66,6 +67,10 @@ class create_view(CreateView):
     template_name = 'employee_create.html'  # 模板文件路径
     form_class = EmployeeForm  # 使用自定义的表单类
     success_url = reverse_lazy('employee_list')  # 保存成功后重定向到列表视图
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = EmployeeForm(self.request.GET, user=self.request.user)
+        return context
     def form_valid(self, form):
         # 首先保存员工对象
         employee = form.save()
@@ -117,11 +122,21 @@ class delete_view(DeleteView):
         employee = self.get_object()
         employee.delete()
         return redirect(self.success_url)
+    
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class update_view(UpdateView):
     model = employee
     template_name = 'employee_update.html'  # 模板文件路径
     form_class = EmployeeForm  # 使用自定义的表单类
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+    def get_form_kwargs(self):
+        # 获取表单的初始参数
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # 将当前用户传递给表单
+        return kwargs
     def form_valid(self, form):
         employee = form.save()
         if employee.position=='普通员工' or employee.position=='试用员工':

@@ -44,23 +44,8 @@ class EmployeeFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)
-        print(f"User groups: {user.groups.all()}")
-        # 如果当前用户是部门经理，限制部门选择为当前用户所属的部门
         if user and user.groups.filter(name='department_manager').exists():  # 判断是否为部门经理
-            try:
-                employee_obj = employee.objects.get(user=user)
-                current_department = user.employee.department  # 获取当前部门
-                # 将 department 字段设置为只读，并默认选中当前部门
-                self.fields['department'].initial = current_department
-                # 限制 department 字段的选择项为当前部门
-                self.fields['department'].choices = [(current_department, current_department)]
-                # 禁用部门选择字段
-                self.fields['department'].disabled = True  # 禁用字段，不可编辑
-                # 使用 TextInput 显示部门名称，并使其不可编辑
-                self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
-                print("部门经理的部门是", current_department)
-            except employee.DoesNotExist:
-                print("没有找到对应的员工信息")
+            self.fields['department'].disabled = True  # 禁用字段，不可编辑
             
 
 class EmployeeForm(forms.ModelForm):
@@ -105,6 +90,32 @@ class EmployeeForm(forms.ModelForm):
     class Meta:
         model = employee
         fields = ['id','name', 'sex', 'birthday', 'email', 'phone', 'address','department','position']
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)  # 获取当前用户
+        super().__init__(*args, **kwargs)
+        # 如果当前用户是部门经理，限制部门选择为当前用户所属的部门
+        if user and user.groups.filter(name='department_manager').exists():
+            try:
+                employee_obj = employee.objects.get(user=user)
+                current_department = user.employee.department  # 获取当前部门
+                # 将 department 字段设置为只读，并默认选中当前部门
+                self.fields['department'].initial = current_department
+                # 限制 department 字段的选择项为当前部门
+                self.fields['department'].choices = [(current_department, current_department)]
+                # 禁用部门选择字段
+                self.fields['department'].disabled = True  # 禁用字段，不可编辑
+                # 使用 TextInput 显示部门名称，并使其不可编辑
+                self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
+                print("部门经理的部门是", current_department)
+                new_position_choices = [choice for choice in self.POSITION_CHOICES if choice[0] not in ['部门经理', '总经理']]
+                self.fields['position'].choices = new_position_choices  # 更新 position 选择项
+            except employee.DoesNotExist:
+                print("没有找到对应的员工信息")
+
+
+
+
+
 
 class EmployeeDeleteForm(forms.ModelForm):
     class Meta:
