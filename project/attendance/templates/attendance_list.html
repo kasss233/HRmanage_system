@@ -11,13 +11,10 @@
             <h2>筛选器</h2>
             <form method="get">
                 <!-- 使用表单渲染 -->
-                {{ form.as_table }}  <!-- 自动将字段渲染为表格格式 -->
-
-                <!-- 提交按钮 -->
+                {{ form.as_table }}
                 <button type="submit">筛选</button>
             </form>
 
-            <!-- 表单错误信息展示 -->
             {% if form.errors %}
                 <div class="error-messages">
                     <ul>
@@ -33,9 +30,10 @@
 
         <!-- 考勤记录列表表格部分 -->
         <div class="employee-list">
-            <table>
+            <table class="table">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>员工姓名</th>
                         <th>日期</th>
                         <th>签到状态</th>
@@ -47,16 +45,17 @@
                 <tbody>
                     {% for record in attendance_records %}
                         <tr>
-                            <td>{{ record.employee.name }}</td>  <!-- 显示员工姓名 -->
-                            <td>{{ record.date|date:"Y-m-d"}}
-                            <td>{{ record.is_sign_in|yesno:"已签到,未签到" }}</td>  <!-- 显示签到状态 -->
-                            <td>{{ record.is_sign_out|yesno:"已签退,未签退" }}</td>  <!-- 显示签退状态 -->
-                            <td>{{ record.sign_in|date:"H:i:s" }}</td>  <!-- 显示签到时间 -->
-                            <td>{{ record.sign_out|date:"H:i:s" }}</td>  <!-- 显示签退时间 -->
+                            <td>{{ record.employee.id }}</td>
+                            <td>{{ record.employee.name }}</td>
+                            <td>{{ record.date|date:"Y-m-d" }}</td>
+                            <td>{{ record.is_sign_in|yesno:"已签到,未签到" }}</td>
+                            <td>{{ record.is_sign_out|yesno:"已签退,未签退" }}</td>
+                            <td>{{ record.sign_in|default:"未签到"|date:"H:i:s" }}</td>
+                            <td>{{ record.sign_out|default:"未签退"|date:"H:i:s" }}</td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="3">没有符合筛选条件的考勤记录</td>
+                            <td colspan="7">没有符合筛选条件的考勤记录</td>
                         </tr>
                     {% endfor %}
                 </tbody>

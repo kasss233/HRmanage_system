@@ -3,12 +3,18 @@ from .models import Attendance
 from employee.models import employee
 
 class AttendanceFilterForm(forms.Form):
-    # 添加一个姓名搜索框
+    # 添加姓名搜索框
     name = forms.CharField(
         required=False,
         label='员工姓名',
         max_length=100,
         widget=forms.TextInput(attrs={'placeholder': '请输入姓名'})
+    )
+    # 添加员工ID搜索框
+    id = forms.IntegerField(
+        required=False,
+        label='员工ID',
+        widget=forms.TextInput(attrs={'placeholder': '请输入员工ID'})
     )
     employee = forms.ModelChoiceField(
         queryset=employee.objects.all(),
@@ -33,10 +39,15 @@ class AttendanceFilterForm(forms.Form):
         self.fields['employee'].queryset = employee.objects.all()
 
     def filter_employees(self):
-        # 获取员工姓名搜索字段
+        # 获取员工姓名和ID搜索字段
         if self.is_valid():
             name = self.cleaned_data.get('name')
+            employee_id = self.cleaned_data.get('id')
 
-        # 如果输入了姓名，过滤员工列表
+            # 如果输入了姓名，过滤员工列表
             if name:
                 self.fields['employee'].queryset = employee.objects.filter(name__icontains=name)
+
+            # 如果输入了员工ID，过滤员工列表
+            if employee_id:
+                self.fields['employee'].queryset = self.fields['employee'].queryset.filter(id=employee_id)

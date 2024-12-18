@@ -14,3 +14,5 @@ class employee(models.Model):
     email=models.EmailField(max_length=100)
     phone=models.CharField(max_length=100)
     address=models.CharField(max_length=100)
+    department=models.CharField(max_length=100,null=True)
+    position=models.CharField(max_length=100,null=True)

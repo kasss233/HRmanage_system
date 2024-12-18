@@ -57,8 +57,10 @@ header nav ul li a:hover {
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    margin-right: 35%;
-    width: 100%;
+    width: 1200px;
+    margin: 0 auto;
+    /* 水平居中 */
+
 }
 
 /* 员工列表表格 */
@@ -97,7 +99,7 @@ table tr:hover {
 .filter-form {
     position: fixed;
     top: 100px;
-    right: 20px;
+    left: 20px;
     width: 200px;
     background-color: #fff;
     padding: 20px;

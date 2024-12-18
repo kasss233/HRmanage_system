@@ -80,9 +80,13 @@ class create_view(CreateView):
         )
         
         # 将用户添加到 'employee' 组
-        employee_group = Group.objects.get(name='employee')
-        user.groups.add(employee_group)
-
+        if employee.position=='普通员工' or employee.position=='试用员工':
+            employee_group = Group.objects.get(name='employee')
+            user.groups.add(employee_group)
+        elif employee.position=='部门经理'or employee.position=='总经理':
+            employee_group = Group.objects.get(name='manager')
+            user.groups.add(employee_group)
+        
         # 将用户与员工关联
         employee.user = user
         employee.save()
@@ -113,6 +117,22 @@ class update_view(UpdateView):
     model = employee
     template_name = 'employee_update.html'  # 模板文件路径
     form_class = EmployeeForm  # 使用自定义的表单类
+    def form_valid(self, form):
+        employee = form.save()
+        if employee.position=='普通员工' or employee.position=='试用员工':
+            employee_group = Group.objects.get(name='employee')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='部门经理':
+            employee_group = Group.objects.get(name='department_manager')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='总经理':
+            employee_group = Group.objects.get(name='general_manager')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='员工组长':
+            employee_group = Group.objects.get(name='group_leader')
+            employee.user.groups.add(employee_group)
+        employee.save()
+        return super().form_valid(form)
     success_url = reverse_lazy('employee_list')  # 更新成功后重定向到列表视图
 
 

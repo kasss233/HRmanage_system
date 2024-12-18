@@ -1,4 +1,3 @@
-<!-- templates/sign_in_sign_out.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -28,5 +27,12 @@
       {% endif %}
     {% endif %}
   </div>
+
+  <!-- 如果时间不在有效范围内，则弹出提示 -->
+  {% if is_out_of_range %}
+    <script type="text/javascript">
+      alert("当前时间不在签到或签退的有效范围内！");
+    </script>
+  {% endif %}
 
 {% endblock %}
