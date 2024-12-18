@@ -33,6 +33,7 @@ class list_view(ListView):
         name = self.request.GET.get('name', '').strip()
         sex = self.request.GET.get('sex', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
+        department = self.request.GET.get('department', '').strip()
         # 按照查询条件过滤
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -40,6 +41,8 @@ class list_view(ListView):
             queryset = queryset.filter(sex=sex)
         if birthday:
             queryset = queryset.filter(birthday=birthday)
+        if department:
+            queryset = queryset.filter(department=department)
         today = date.today()
         
 
@@ -82,10 +85,16 @@ class create_view(CreateView):
         # 将用户添加到 'employee' 组
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
-            user.groups.add(employee_group)
-        elif employee.position=='部门经理'or employee.position=='总经理':
-            employee_group = Group.objects.get(name='manager')
-            user.groups.add(employee_group)
+            employee.user.groups.add(employee_group)
+        elif employee.position=='部门经理':
+            employee_group = Group.objects.get(name='department_manager')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='总经理':
+            employee_group = Group.objects.get(name='general_manager')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='员工组长':
+            employee_group = Group.objects.get(name='group_leader')
+            employee.user.groups.add(employee_group)
         
         # 将用户与员工关联
         employee.user = user
