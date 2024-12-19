@@ -20,7 +20,7 @@ from employee.models import employee
 from datetime import time
 from django.core.paginator import Paginator
 def list_view(request):
-    form = AttendanceFilterForm(request.GET)
+    form = AttendanceFilterForm(request.GET, user=request.user)
     attendance_records = Attendance.objects.all()
 
     if form.is_valid():
@@ -30,7 +30,7 @@ def list_view(request):
         employee = form.cleaned_data.get('employee')
         start_date = form.cleaned_data.get('start_date')
         end_date = form.cleaned_data.get('end_date')
-
+        department = form.cleaned_data.get('department')
         # 根据条件进行过滤
         if id:
             attendance_records = attendance_records.filter(employee__id__icontains=id)
@@ -42,7 +42,9 @@ def list_view(request):
             attendance_records = attendance_records.filter(date__gte=start_date)
         if end_date:
             attendance_records = attendance_records.filter(date__lte=end_date)
-
+        if department:
+            attendance_records = attendance_records.filter(employee__department=department)
+        
     # 分页逻辑
     attendance_records = attendance_records.order_by('-date')  # 排序可以调整为你需要的字段
     paginator = Paginator(attendance_records, 10)

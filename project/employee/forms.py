@@ -113,10 +113,6 @@ class EmployeeForm(forms.ModelForm):
                 print("没有找到对应的员工信息")
 
 
-
-
-
-
 class EmployeeDeleteForm(forms.ModelForm):
     class Meta:
         model = employee
