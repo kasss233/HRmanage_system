@@ -206,7 +206,7 @@ class frontpage_view(LoginRequiredMixin, DetailView):
         # 将处理后的 salary_records 传入上下文
         context['salary_records'] = salary_records
         # 检查用户是否为组长、部门经理、总经理
-        if self.request.user.groups.filter(Q(name='group_leader') | Q(name='general_manager')).exists():
+        if self.request.user.groups.filter(Q(name='group_leader') | Q(name='general_manager') ).exists():
             context['is_group_leader'] = True
         else:
             context['is_group_leader'] = False
