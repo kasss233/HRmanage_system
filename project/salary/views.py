@@ -4,6 +4,7 @@ from .models import Salary, SalaryStandard
 # 查询员工工资
 def salary_detail(request, employee_id):
     salary = get_object_or_404(Salary, id=employee_id)
+    salary.save()
     try:
         standard = SalaryStandard.objects.get(id=salary.level)
         basic_salary = standard.basic_salary

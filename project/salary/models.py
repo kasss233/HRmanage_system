@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Salary(models.Model):
     id = models.IntegerField(primary_key=True)
     level = models.IntegerField(null=True, blank=True)
@@ -13,6 +14,29 @@ class Salary(models.Model):
     def __str__(self):
         return f"Salary ID: {self.id}, Level: {self.level}"
 
+    def save(self, *args, **kwargs):
+        # 确保 level、bonus 和 basic_salary 都不是 None
+        if self.level is not None:
+            try:
+                # 获取对应的 SalaryStandard 对象
+                salary_standard = SalaryStandard.objects.get(id=self.level)
+
+                # 处理 None 值，避免加法操作中的错误
+                bonus = self.bonus if self.bonus is not None else 0  # 如果 bonus 为 None, 视为 0
+                basic_salary = salary_standard.basic_salary if salary_standard.basic_salary is not None else 0  # 如果 basic_salary 为 None, 视为 0
+
+                # 计算 total_salary
+                self.total_salary = basic_salary + bonus
+
+            except SalaryStandard.DoesNotExist:
+                # 如果没有找到对应的 SalaryStandard，设置 total_salary 为 bonus
+                self.total_salary = self.bonus if self.bonus is not None else 0
+
+        # 确保 bonus 也不是 None，默认值为 0
+        elif self.bonus is not None:
+            self.total_salary = self.bonus
+
+        super().save(*args, **kwargs)
 
 class SalaryStandard(models.Model):
     id = models.AutoField(primary_key=True)
