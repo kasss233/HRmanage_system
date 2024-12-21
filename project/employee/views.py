@@ -34,6 +34,7 @@ class list_view(ListView):
         sex = self.request.GET.get('sex', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
         department = self.request.GET.get('department', '').strip()
+        group = self.request.GET.get('group', '').strip()
         if user.groups.filter(name='department_manager').exists():
             department = user.employee.department
         # 按照查询条件过滤
@@ -45,6 +46,8 @@ class list_view(ListView):
             queryset = queryset.filter(birthday=birthday)
         if department:
             queryset = queryset.filter(department=department)
+        if group:
+            queryset = queryset.filter(group__name__icontains=group)
 
         return queryset
 
@@ -154,7 +157,6 @@ class update_view(UpdateView):
         employee.save()
         return super().form_valid(form)
     success_url = reverse_lazy('employee_list')  # 更新成功后重定向到列表视图
-
 
 
 

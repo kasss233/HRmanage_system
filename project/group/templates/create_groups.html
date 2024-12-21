@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}创建小组{% endblock %}
+
+{% block content %}
+    <h1>创建小组</h1>
+
+    {% if is_manager %}
+        <p>您是总经理，可以管理所有部门。</p>
+    {% elif is_department_manager %}
+        <p>您是部门经理，只能管理您的部门。</p>
+    {% endif %}
+    
+    <h2>选择部门并创建小组</h2>
+
+    <!-- 显示结果 -->
+    {% if result %}
+        <p>{{ result }}</p>
+    {% endif %}
+
+    <!-- 显示当前部门 -->
+    {% if is_manager %}
+        <!-- 总经理可以选择部门 -->
+        <form method="POST">
+            {% csrf_token %}
+            <label for="department">选择部门：</label>
+            <select name="department" id="department">
+                <option value="技术部" {% if current_department == "技术部" %}selected{% endif %}>技术部</option>
+                <option value="市场部" {% if current_department == "市场部" %}selected{% endif %}>市场部</option>
+                <option value="财务部" {% if current_department == "财务部" %}selected{% endif %}>财务部</option>
+                <option value="行政部" {% if current_department == "行政部" %}selected{% endif %}>行政部</option>
+                <option value="研发部" {% if current_department == "研发部" %}selected{% endif %}>研发部</option>
+                <option value="销售部" {% if current_department == "销售部" %}selected{% endif %}>销售部</option>
+                <option value="运营部" {% if current_department == "运营部" %}selected{% endif %}>客服部</option>
+                <option value="客服部" {% if current_department == "客服部" %}selected{% endif %}>运营部</option>
+                <option value="采购部" {% if current_department == "采购部" %}selected{% endif %}>采购部</option>
+                <option value="售后部" {% if current_department == "售后部" %}selected{% endif %}>售后部</option>
+                <option value="公关部" {% if current_department == "公关部" %}selected{% endif %}>公关部</option>
+                <option value="战略部" {% if current_department == "战略部" %}selected{% endif %}>战略部</option>
+                <option value="人力资源部" {% if current_department == "人力资源部" %}selected{% endif %}>人力资源部</option>
+                <option value="法务部" {% if current_department == "法务部" %}selected{% endif %}>法务部</option>
+            </select>
+            <button type="submit" name="create_group_button" value="true">创建小组</button>
+        </form>
+    {% else %}
+        <!-- 部门经理不可以更改当前部门 -->
+        <p>当前部门: {{ current_department }}</p>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" name="create_group_button" value="true">创建小组</button>
+        </form>
+    {% endif %}
+{% endblock %}

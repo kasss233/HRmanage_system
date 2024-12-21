@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "testapp.apps.TestappConfig",
     "employee.apps.EmployeeConfig",
     "attendance.apps.AttendanceConfig",
-    "accounts.apps.AccountsConfig"
+    "accounts.apps.AccountsConfig",
+    "group.apps.GroupConfig",  # 确保添加这一行
 ]
 
 MIDDLEWARE = [
