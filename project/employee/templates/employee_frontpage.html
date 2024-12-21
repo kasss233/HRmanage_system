@@ -3,10 +3,12 @@
 {% block header %}
     <nav>
         <ul>
+            
             <li><a href="{% url 'logout' %}">登出</a></li>
+            <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
             <li><a href="{% url 'sign' %}">签到签退</a></li>
             <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
-            <li><a href="{% url 'standard_detail' %}">工资标准</a></li>
+            
 
             {% if is_group_leader %}
                 <!-- 显示员工管理按钮 -->
@@ -69,7 +71,7 @@
             </tbody>
         </table>
     </div>
-<!-- 工资记录 -->
+<!-- 工资记录 --> 
     <h2>工资记录</h2>
     <table class="info-table">
         <thead>
@@ -97,6 +99,9 @@
             {% endfor %}
         </tbody>
     </table>
+    <div>
+        <li><a href="{% url 'standard_detail' %}">工资标准</a></li>
+    </div>
     <style>
         /* Employee Info Table */
         .employee-info {

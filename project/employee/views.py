@@ -23,7 +23,7 @@ from django.contrib.auth.hashers import make_password
 from django.views.generic import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-
+@method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
 class list_view(ListView):
     model = employee
     template_name = 'employee_list.html'
@@ -206,7 +206,7 @@ class frontpage_view(LoginRequiredMixin, DetailView):
         # 将处理后的 salary_records 传入上下文
         context['salary_records'] = salary_records
         # 检查用户是否为组长、部门经理、总经理
-        if self.request.user.groups.filter(Q(name='group_leader') | Q(name='general_manager') ).exists():
+        if self.request.user.groups.filter(Q(name='group_leader') | Q(name='general_manager') |Q(name='department_manager')).exists():
             context['is_group_leader'] = True
         else:
             context['is_group_leader'] = False

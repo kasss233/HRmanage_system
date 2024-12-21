@@ -22,7 +22,6 @@ from django.core.paginator import Paginator
 def list_view(request):
     form = AttendanceFilterForm(request.GET, user=request.user)
     attendance_records = Attendance.objects.all()
-
     if form.is_valid():
         # 获取筛选字段
         id=form.cleaned_data.get('id')
@@ -57,6 +56,13 @@ def list_view(request):
         'attendance_records': page_obj,
         'query_params': request.GET.urlencode(),  # 保持查询参数以便分页使用
     })
+    def get_context_data(self, **kwargs):
+        if self.request.user.groups.filter(name='employee').exists():
+            context['is_employee'] = True
+        else:
+            context['is_employee'] = False
+
+    
 
 @login_required
 def sign(request):
@@ -119,7 +125,7 @@ def sign(request):
         sign_out_time = today_attendance.sign_out
         is_signed_in = today_attendance.is_sign_in
         is_signed_out = today_attendance.is_sign_out
-
+    
     context = {
         'current_time': current_time,
         'employee': employee_instance,
@@ -129,6 +135,13 @@ def sign(request):
         'is_signed_out': is_signed_out,
         'is_out_of_range': is_out_of_range,  # 添加提示信息标识
     }
+    def get_context_data(self, **kwargs):
+        if self.request.user.groups.filter(name='employee').exists():
+            context['is_employee'] = True
+        else:
+            context['is_employee'] = False
+    
+    
 
     return render(request, 'attendance_sign.html', context)
 

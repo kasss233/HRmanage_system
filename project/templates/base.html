@@ -16,12 +16,12 @@
         {% block header %}
         <nav>
             <ul>
+               
                 <li><a href="{% url 'logout' %}">登出</a></li>
+                <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
                 <li><a href="{% url 'sign' %}">签到签退</a></li>
-                <li><a href="{% url 'employee_list' %}">员工表单</a></li>
                 <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
-                <li><a href="{% url 'employee_create' %}">新增员工</a></li>
-                <li><a href="{% url 'standard_detail' %}">工资标准</a></li>
+                <li><a href="{% url 'employee_list' %}">员工管理</a></li>
             </ul>
         </nav>
         {% endblock %}

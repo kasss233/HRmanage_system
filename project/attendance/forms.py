@@ -55,17 +55,29 @@ class AttendanceFilterForm(forms.Form):
         user=kwargs.pop('user',None)
         super().__init__(*args, **kwargs)
         self.fields['employee'].queryset = employee.objects.all()
-        if user and user.groups.filter(name='department_manager').exists():
-            employee_obj = employee.objects.get(user=user)
-            current_department = user.employee.department  # 获取当前部门
-            # 将 department 字段设置为只读，并默认选中当前部门
-            self.fields['department'].initial = current_department
-            # 限制 department 字段的选择项为当前部门
-            self.fields['department'].choices = [(current_department, current_department)]
-            # 禁用部门选择字段
-            self.fields['department'].disabled = True  # 禁用字段，不可编辑
-            # 使用 TextInput 显示部门名称，并使其不可编辑
-            self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
+        if user:
+            if user.groups.filter(name='department_manager').exists():
+                employee_obj = employee.objects.get(user=user)
+                current_department = user.employee.department  # 获取当前部门
+                # 将 department 字段设置为只读，并默认选中当前部门
+                self.fields['department'].initial = current_department
+                # 限制 department 字段的选择项为当前部门
+                self.fields['department'].choices = [(current_department, current_department)]
+                # 禁用部门选择字段
+                self.fields['department'].disabled = True  # 禁用字段，不可编辑
+                # 使用 TextInput 显示部门名称，并使其不可编辑
+                self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
+            if user.groups.filter(name='general_manager').exists():
+                pass
+            elif user.groups.filter(name='employee').exists():
+                employee_obj = employee.objects.get(user=user)
+                self.fields['employee'].queryset = employee.objects.filter(id=employee_obj.id)
+                self.fields['employee'].initial = employee_obj
+                self.fields['department'].disabled = True
+                self.fields['name'].disabled = True
+                self.fields['id'].disabled = True
+                self.fields['employee'].disabled = True
+
 
     def filter_employees(self):
         # 获取员工姓名和ID搜索字段
