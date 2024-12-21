@@ -49,18 +49,14 @@ def list_view(request):
     paginator = Paginator(attendance_records, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    is_employee = request.user.groups.filter(name='employee').exists()
     # 渲染模板并传递数据
     return render(request, 'attendance_list.html', {
         'form': form,
         'attendance_records': page_obj,
         'query_params': request.GET.urlencode(),  # 保持查询参数以便分页使用
+        'is_employee': is_employee,
     })
-    def get_context_data(self, **kwargs):
-        if self.request.user.groups.filter(name='employee').exists():
-            context['is_employee'] = True
-        else:
-            context['is_employee'] = False
 
     
 
@@ -119,7 +115,7 @@ def sign(request):
 
     # 重新获取今天的考勤记录，以便显示最新的状态
     today_attendance = Attendance.objects.filter(employee=employee_instance, date=current_time.date()).first()
-
+    is_employee = request.user.groups.filter(name='employee').exists()
     if today_attendance:
         sign_in_time = today_attendance.sign_in
         sign_out_time = today_attendance.sign_out
@@ -134,12 +130,8 @@ def sign(request):
         'is_signed_in': is_signed_in,
         'is_signed_out': is_signed_out,
         'is_out_of_range': is_out_of_range,  # 添加提示信息标识
+        'is_employee': is_employee,
     }
-    def get_context_data(self, **kwargs):
-        if self.request.user.groups.filter(name='employee').exists():
-            context['is_employee'] = True
-        else:
-            context['is_employee'] = False
     
     
 
