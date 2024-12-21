@@ -3,7 +3,7 @@ from django.db import models
 from employee.models import employee
 
 class Group(models.Model):
-    name = models.CharField(max_length=100, null=True, blank=True)  # 小组名称，如 'A组', 'B组'
+    name = models.CharField(max_length=100, blank=True,primary_key=True)  # 小组名称，如 'A组', 'B组'
     department = models.CharField(max_length=100, null=True, blank=True)  # 小组所属部门
     members = models.ManyToManyField(employee, related_name='groups', blank=True)  # 小组成员
     leader = models.ForeignKey(

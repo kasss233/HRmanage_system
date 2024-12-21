@@ -110,7 +110,7 @@ class AssignGroupLeaderView(UpdateView):
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class CreateGroupView(CreateView):
     model = Group  # 这是你的Group模型
-    template_name = 'group_create.html'  # 模板文件
+    template_name = 'create_group.html'  # 模板文件
     form_class = GroupForm  # 小组创建表单类
     success_url = reverse_lazy('group_list')  # 创建成功后跳转到小组列表页面
 

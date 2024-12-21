@@ -11,7 +11,7 @@ class GroupForm(forms.ModelForm):
     # 此处示例没有添加额外的选择项，因为字段都比较简单
     class Meta:
         model = Group
-        fields = ['name', 'department', 'leader']  # 假设 Group 模型有这些字段
+        fields = ['name', 'department', 'leader']# 假设 Group 模型有这些字段
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
@@ -40,11 +40,11 @@ class GroupForm(forms.ModelForm):
                 self.fields['leader'].queryset = self.fields['leader'].queryset.filter(department=current_department)
 
                 # 如果是部门经理，限制只能选择"员工"或"员工组长"等职位
-                self.fields['position'].choices = [
-                    ('普通员工', '普通员工'),
-                    ('员工组长', '员工组长'),
-                    ('试用员工', '试用员工')
-                ]
+                #self.fields['position'].choices = [
+                    #('普通员工', '普通员工'),
+                    #('员工组长', '员工组长'),
+                    #('试用员工', '试用员工')
+                #]
 
             except user.employee.DoesNotExist:
                 print("没有找到对应的员工信息")
@@ -53,18 +53,18 @@ class GroupForm(forms.ModelForm):
             self.fields['leader'].queryset = self.fields['leader'].queryset.all()  # 不做任何限制
             self.fields['department'].disabled = False  # 总经理可以选择任何部门
             # 如果是总经理，允许选择所有职位
-            self.fields['position'].choices = [
-                ('试用员工', '试用员工'),
-                ('普通员工', '普通员工'),
-                ('员工组长', '员工组长'),
-                ('部门经理', '部门经理'),
-                ('总经理', '总经理')
-            ]
+            #self.fields['position'].choices = [
+                #('试用员工', '试用员工'),
+                #('普通员工', '普通员工'),
+                #('员工组长', '员工组长'),
+                #('部门经理', '部门经理'),
+                #('总经理', '总经理')
+            #]
         else:
             # 如果不是部门经理或总经理，可以根据需要调整
             self.fields['leader'].queryset = self.fields['leader'].queryset.none()  # 不允许选择任何领导
             self.fields['department'].disabled = True  # 禁用部门字段
-            self.fields['position'].disabled = True  # 禁用职位字段
+            #self.fields['position'].disabled = True  # 禁用职位字段
         def clean_name(self):
             name = self.cleaned_data.get('name')
         
