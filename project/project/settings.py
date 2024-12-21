@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "testapp.apps.TestappConfig",
     "employee.apps.EmployeeConfig",
+    "group.apps.GroupConfig",
     "attendance.apps.AttendanceConfig",
     "accounts.apps.AccountsConfig",
     "salary.apps.SalaryConfig"

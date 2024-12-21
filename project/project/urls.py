@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path
 import testapp.views
 import employee.views
+import group.views
 import attendance.views
 import accounts.views
 import attendance.views
@@ -38,4 +39,7 @@ urlpatterns = [
     path("sign",attendance.views.sign,name="sign"),
     path('employee/salary/<int:employee_id>/', salary.views.salary_detail, name='salary_detail'),
     path('standards/', salary.views.standard_detail, name='standard_detail'),
+    path('group/create/', group.views.CreateGroupView.as_view(), name='create_group'),
+    path('group/<int:pk>/add_member/', group.views.AddMemberToGroupView.as_view(), name='add_member_to_group'),
+    path('group/<int:pk>/assign_leader/', group.views.AssignGroupLeaderView.as_view(), name='assign_group_leader'),
 ]

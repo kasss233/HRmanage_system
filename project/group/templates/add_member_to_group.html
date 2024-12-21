@@ -1,0 +1,24 @@
+<!-- templates/group/add_member_to_group.html -->
+{% extends 'base.html' %}
+
+{% block title %}添加成员到小组{% endblock %}
+
+{% block content %}
+  <h1>添加成员到小组: {{ group.name }}</h1>
+
+  <h2>当前小组成员</h2>
+  <ul>
+    {% for member in group.members.all %}
+      <li>{{ member.name }}</li>
+    {% empty %}
+      <p>该小组暂无成员。</p>
+    {% endfor %}
+  </ul>
+
+  <h2>选择要添加的成员</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">添加成员</button>
+  </form>
+{% endblock %}

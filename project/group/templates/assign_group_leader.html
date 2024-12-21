@@ -1,0 +1,17 @@
+<!-- templates/group/assign_group_leader.html -->
+{% extends 'base.html' %}
+
+{% block title %}任命组长{% endblock %}
+
+{% block content %}
+  <h1>为小组 "{{ group.name }}" 任命组长</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">保存</button>
+  </form>
+
+  <br>
+  <a href="{% url 'group_detail' pk=group.pk %}">返回小组详情</a>
+{% endblock %}
