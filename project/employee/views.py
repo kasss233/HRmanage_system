@@ -22,14 +22,15 @@ from django.shortcuts import redirect
 from django.contrib.auth.hashers import make_password
 from django.views.generic import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
-
+import csv
+from django.http import HttpResponse
+from urllib.parse import urlencode
 @method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
 class list_view(ListView):
     model = employee
     template_name = 'employee_list.html'
     context_object_name = 'employees'
     paginate_by = 10  # 每页显示10条记录
-
     def get_queryset(self):
         queryset = employee.objects.all()
         user = self.request.user
@@ -58,13 +59,40 @@ class list_view(ListView):
         # 将当前用户传递给表单
         context['form'] = EmployeeFilterForm(self.request.GET, user=self.request.user)
 
-        # 保持分页状态的查询参数（确保翻页时不丢失筛选条件）
-        query_params = self.request.GET.copy()
-        query_params['page'] = self.request.GET.get('page', 1)  # 防止分页为空
-        context['query_params'] = query_params.urlencode()
+         # 获取查询参数并排除空值
+        query_params = self.request.GET.dict()
+        query_params.pop('page', None)  # 删除分页参数，但保留其他筛选参数
+        # 传递 query_params 供模板分页器使用
+        context['query_params'] = urlencode(query_params)
+        return context  
+    def get(self, request, *args, **kwargs):
+        # 如果用户请求导出数据
+        if 'export' in request.GET:
+            return self.export_data()
+        return super().get(request, *args, **kwargs)
 
-        return context
-
+    def export_data(self):
+        queryset = self.get_queryset()
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="employees.csv"'
+        response.charset = 'GBK'
+        # 写入 CSV 文件内容
+        writer = csv.writer(response)
+        writer.writerow(['ID', '姓名', '性别', '生日', '邮箱', '电话', '地址', '部门', '职位'])  # 表头
+        for emp in queryset:
+            writer.writerow([
+                emp.id,
+                emp.name,
+                emp.sex,
+                emp.birthday,
+                emp.email,
+                emp.phone,
+                emp.address,
+                emp.department,
+                emp.position,
+            ])
+        return response
+    
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class create_view(CreateView):
     model = employee

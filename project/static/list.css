@@ -254,18 +254,27 @@ a.btn-danger:hover {
     background-color: #2980b9;
 }
 
-/* 注册链接样式 */
-.login-form a {
-    display: block;
-    text-align: center;
-    margin-top: 15px;
-    color: #3498db;
+/* 为导出按钮添加自定义样式 */
+.btn-export {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
     text-decoration: none;
-    font-size: 0.9rem;
     font-weight: bold;
-    transition: color 0.3s ease;
+    font-size: 16px;
+    /* 增大字体 */
+    display: inline-block;
+    text-align: center;
+    width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    border: none;
+    /* 去掉黑边 */
 }
 
-.login-form a:hover {
-    color: #2980b9;
+.btn-export:hover {
+    background-color: #0056b3;
+    /* 鼠标悬停时改变背景颜色 */
 }

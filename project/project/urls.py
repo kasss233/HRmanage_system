@@ -42,4 +42,5 @@ urlpatterns = [
     path('group/create/', group.views.CreateGroupView.as_view(), name='create_group'),
     path('group/<int:pk>/add_member/', group.views.AddMemberToGroupView.as_view(), name='add_member_to_group'),
     path('group/<int:pk>/assign_leader/', group.views.AssignGroupLeaderView.as_view(), name='assign_group_leader'),
+    path('attendance/update/<int:pk>/', attendance.views.AttendanceUpdateView.as_view(), name='attendance_update'),
 ]

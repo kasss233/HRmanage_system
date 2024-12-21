@@ -19,6 +19,7 @@ from .models import Attendance
 from employee.models import employee
 from datetime import time
 from django.core.paginator import Paginator
+import csv
 def list_view(request):
     form = AttendanceFilterForm(request.GET, user=request.user)
     attendance_records = Attendance.objects.all()
@@ -49,6 +50,8 @@ def list_view(request):
     paginator = Paginator(attendance_records, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    if 'export' in request.GET:
+        return export_data(attendance_records)
     is_employee = request.user.groups.filter(name='employee').exists()
     # 渲染模板并传递数据
     return render(request, 'attendance_list.html', {
@@ -58,7 +61,34 @@ def list_view(request):
         'is_employee': is_employee,
     })
 
+def export_data(attendance_records):
+    # 创建响应对象
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="attendance_records.csv"'
+
+    # 设置编码为 GBK
+    response.charset = 'GBK'
+
+    # 创建 CSV 写入器
+    writer = csv.writer(response)
     
+    # 写入 CSV 表头
+    writer.writerow(['ID', '员工',  '部门','考勤日期', '签到时间', '签退时间','签到状态', '签退状态','备注'])  # 根据你的字段调整
+
+    # 写入数据
+    for record in attendance_records:
+        writer.writerow([
+            record.employee.id,
+            record.employee.name,
+            record.employee.department,
+            record.date,
+            record.sign_in,
+            record.sign_out,
+            record.is_sign_in,
+            record.is_sign_out,
+            record.remarks
+        ])
+    return response    
 
 @login_required
 def sign(request):
@@ -133,8 +163,15 @@ def sign(request):
         'is_employee': is_employee,
     }
     
-    
-
     return render(request, 'attendance_sign.html', context)
-
-
+from django.views.generic.edit import UpdateView
+from .models import Attendance
+from .forms import AttendanceForm
+from django.urls import reverse
+@method_decorator(group_required('group_leader', 'department_manager','general_manager'), name='dispatch')
+class AttendanceUpdateView(UpdateView):
+    model = Attendance
+    form_class = AttendanceForm
+    template_name = 'attendance_update.html'
+    def get_success_url(self):
+        return reverse('attendance_list')  # 更新后返回考勤列表页面

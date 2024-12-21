@@ -49,6 +49,7 @@ class AttendanceFilterForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date'}),
         label='结束日期'
     )
+    
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select,label='部门',required=False)
     # 提供筛选的默认值
     def __init__(self, *args, **kwargs):
@@ -92,3 +93,12 @@ class AttendanceFilterForm(forms.Form):
             # 如果输入了员工ID，过滤员工列表
             if employee_id:
                 self.fields['employee'].queryset = self.fields['employee'].queryset.filter(id=employee_id)
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['employee', 'date', 'remarks']  # 包括备注字段
+        widgets = {
+            'remarks': forms.Textarea(attrs={'rows': 3, 'placeholder': '输入备注说明'}),
+            'employee': forms.TextInput(attrs={'readonly': 'readonly'}),  # 设置 employee 字段只读
+            'date': forms.TextInput(attrs={'readonly': 'readonly'}),  # 设置 date 字段只读
+        }
