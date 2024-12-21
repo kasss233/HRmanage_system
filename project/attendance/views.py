@@ -73,7 +73,7 @@ def export_data(attendance_records):
     writer = csv.writer(response)
     
     # 写入 CSV 表头
-    writer.writerow(['ID', '员工',  '部门','考勤日期', '签到时间', '签退时间','签到状态', '签退状态'])  # 根据你的字段调整
+    writer.writerow(['ID', '员工',  '部门','考勤日期', '签到时间', '签退时间','签到状态', '签退状态','备注'])  # 根据你的字段调整
 
     # 写入数据
     for record in attendance_records:
@@ -86,6 +86,7 @@ def export_data(attendance_records):
             record.sign_out,
             record.is_sign_in,
             record.is_sign_out,
+            record.remarks
         ])
     return response    
 
@@ -162,8 +163,15 @@ def sign(request):
         'is_employee': is_employee,
     }
     
-    
-
     return render(request, 'attendance_sign.html', context)
-
-
+from django.views.generic.edit import UpdateView
+from .models import Attendance
+from .forms import AttendanceForm
+from django.urls import reverse
+@method_decorator(group_required('group_leader', 'department_manager','general_manager'), name='dispatch')
+class AttendanceUpdateView(UpdateView):
+    model = Attendance
+    form_class = AttendanceForm
+    template_name = 'attendance_update.html'
+    def get_success_url(self):
+        return reverse('attendance_list')  # 更新后返回考勤列表页面

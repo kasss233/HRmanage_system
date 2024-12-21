@@ -54,6 +54,8 @@
                         <th>签退状态</th>
                         <th>签到时间</th>
                         <th>签退时间</th>
+                        <th>备注</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,6 +68,10 @@
                             <td>{{ record.is_sign_out|yesno:"已签退,未签退" }}</td>
                             <td>{{ record.sign_in|default:"未签到"|date:"H:i:s" }}</td>
                             <td>{{ record.sign_out|default:"未签退"|date:"H:i:s" }}</td>
+                            <td>{{ record.remarks }}</td>
+                            <td>
+                                <a href="{% url 'attendance_update' record.pk %}"class="btn btn-primary">更新</a>
+                            </td>
                         </tr>
                     {% empty %}
                         <tr>

@@ -38,4 +38,5 @@ urlpatterns = [
     path("sign",attendance.views.sign,name="sign"),
     path('employee/salary/<int:employee_id>/', salary.views.salary_detail, name='salary_detail'),
     path('standards/', salary.views.standard_detail, name='standard_detail'),
+    path('attendance/update/<int:pk>/', attendance.views.AttendanceUpdateView.as_view(), name='attendance_update'),
 ]

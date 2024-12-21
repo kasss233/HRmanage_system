@@ -1,0 +1,15 @@
+{% extends 'base_update.html' %}
+
+{% block title %}Update Employee - My Django Project{% endblock %}
+
+{% block content %}
+<h1>Update Employee Information</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">保存</button>
+</form>
+
+
+{% endblock %}
