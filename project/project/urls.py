@@ -22,9 +22,11 @@ import employee.views
 import attendance.views
 import accounts.views
 import attendance.views
+import salary.views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("employee/",employee.views.list_view.as_view(),name="employee_list"),
+    path("frontpage",employee.views.frontpage_view.as_view(),name="employee_frontpage"),
     path("employee/create/",employee.views.create_view.as_view(),name="employee_create"),
     path("employee/delete/<int:pk>/",employee.views.delete_view.as_view(),name="employee_delete"),
     path("employee/update/<int:pk>/",employee.views.update_view.as_view(),name="employee_update"),
@@ -34,4 +36,7 @@ urlpatterns = [
     path("register/",accounts.views.register_view,name="register"),
     path("logout/",accounts.views.logout_view,name="logout"),
     path("sign",attendance.views.sign,name="sign"),
+    path('employee/salary/<int:employee_id>/', salary.views.salary_detail, name='salary_detail'),
+    path('standards/', salary.views.standard_detail, name='standard_detail'),
+    path('attendance/update/<int:pk>/', attendance.views.AttendanceUpdateView.as_view(), name='attendance_update'),
 ]

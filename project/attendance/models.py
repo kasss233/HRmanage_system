@@ -7,5 +7,4 @@ class Attendance(models.Model):
     sign_out=models.DateTimeField(null=True)
     is_sign_in=models.BooleanField(default=False)
     is_sign_out=models.BooleanField(default=False)
-    
-
+    remarks=models.TextField(null=True)

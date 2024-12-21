@@ -1,7 +1,18 @@
 {% extends 'base_list.html' %}
 
 {% block title %}Employee List{% endblock %}
-
+{% block header %}
+        <nav>
+            <ul>
+                
+                <li><a href="{% url 'logout' %}">登出</a></li>
+                <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
+                <li><a href="{% url 'sign' %}">签到签退</a></li>
+                <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
+                <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+            </ul>
+        </nav>
+        {% endblock %}
 {% block content %}
     <h1>员工表单</h1>
 
@@ -32,6 +43,16 @@
         </div>
 
         <!-- 员工列表表格部分 -->
+        <div class="button-container">
+            <a href="{% url 'employee_create'%}" class="btn btn-primary">添加</a>
+            <form method="get" action="{% url 'employee_list' %}">
+                <!-- 保留当前筛选条件 -->
+                {% for key, value in request.GET.items %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
+                <button type="submit" name="export" value="true" class="btn btn-export">导出数据</button>
+            </form>
+        </div>
         <div class="employee-list">
             <table>
                 <thead>
@@ -80,15 +101,16 @@
             </table>
 
             <!-- 分页功能 -->
-            {% if employees.has_previous %}
-            <a href="?{{ query_params }}&page=1">&laquo; First</a>
-            <a href="?{{ query_params }}&page={{ employees.previous_page_number }}">Previous</a>
-            {% endif %}
-            <span>Page {{ employees.number }} of {{ employees.paginator.num_pages }}</span>
-            {% if employees.has_next %}
-                <a href="?{{ query_params }}&page={{ employees.next_page_number }}">Next</a>
-                <a href="?{{ query_params }}&page={{ employees.paginator.num_pages }}">Last &raquo;</a>
-            {% endif %}
-                    </div>
-                </div>
+            <div class="pagination-container">
+                {% if employees.has_previous %}
+                    <a href="?{% if query_params %}{{ query_params }}&{% endif %}page=1" class="btn btn-secondary">« 首页</a>
+                    <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ employees.previous_page_number }}" class="btn btn-secondary">上一页</a>
+                {% endif %}
+                <span>第 {{ employees.number }} 页，共 {{ employees.paginator.num_pages }} 页</span>
+                {% if employees.has_next %}
+                    <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ employees.next_page_number }}" class="btn btn-secondary">下一页</a>
+                    <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ employees.paginator.num_pages }}" class="btn btn-secondary">尾页 »</a>
+                {% endif %}
+            </div>
+        </div>
 {% endblock %}

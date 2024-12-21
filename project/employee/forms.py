@@ -1,12 +1,11 @@
 from django import forms
 from .models import employee
 from django.forms.widgets import TextInput
-class EmployeeFilterForm(forms.Form):
-    SEX_CHOICES = [
+SEX_CHOICES = [
         ('男', '男'),
         ('女', '女'),
     ]
-    POSITION_CHOICES = [
+POSITION_CHOICES = [
         ('试用员工', '试用员工'),
         ('普通员工', '普通员工'),
         ('员工组长', '员工组长'),
@@ -15,7 +14,7 @@ class EmployeeFilterForm(forms.Form):
 
 
     ]
-    DEPARTMENT_CHOICES = [
+DEPARTMENT_CHOICES = [
         ('技术部', '技术部'),
         ('市场部', '市场部'),
         ('人事部', '人事部'),
@@ -32,6 +31,7 @@ class EmployeeFilterForm(forms.Form):
         ('人力资源部', '人力资源部'),
         ('法务部', '法务部'),
     ]
+class EmployeeFilterForm(forms.Form):
     name = forms.CharField(max_length=100, required=False, label='姓名')
     sex = forms.ChoiceField(choices=SEX_CHOICES, required=False, label='性别')
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES,required=False, label='部门')
@@ -49,36 +49,7 @@ class EmployeeFilterForm(forms.Form):
             
 
 class EmployeeForm(forms.ModelForm):
-    SEX_CHOICES = [
-        ('男', '男'),
-        ('女', '女'),
-    ]
-    POSITION_CHOICES = [
-        ('试用员工', '试用员工'),
-        ('普通员工', '普通员工'),
-        ('员工组长', '员工组长'),
-        ('总经理', '总经理'),
-        ('部门经理', '部门经理'),
-
-
-    ]
-    DEPARTMENT_CHOICES = [
-        ('技术部', '技术部'),
-        ('市场部', '市场部'),
-        ('人事部', '人事部'),
-        ('财务部', '财务部'),
-        ('行政部', '行政部'),
-        ('研发部', '研发部'),
-        ('销售部', '销售部'),
-        ('客服部', '客服部'),
-        ('运营部', '运营部'),
-        ('采购部', '采购部'),
-        ('售后部', '售后部'),
-        ('公关部', '公关部'),
-        ('战略部', '战略部'),
-        ('人力资源部', '人力资源部'),
-        ('法务部', '法务部'),
-    ]
+    
     # 使用选择框选择性别
     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select)
     
