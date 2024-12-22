@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_create.html' %}
 
 {% block title %}创建小组{% endblock %}
 
@@ -25,8 +25,6 @@
         <p>您是总经理，可以创建任何小组。</p>
     {% elif is_department_manager %}
         <p>您是部门经理，您只能创建属于您部门的小组。</p>
-    {% elif is_group_leader %}
-        <p>您是员工组长，您只能创建属于您部门的小组。</p>
     {% else %}
         <p>您没有权限创建小组。</p>
     {% endif %}
@@ -34,7 +32,8 @@
     <!-- 表单 -->
     <form method="POST">
         {% csrf_token %}
+        <div class="form-group">
         {{ form.as_p }}
-        <button type="submit">创建小组</button>
+        <button type="submit" class="btn btn-primary">创建小组</button>
     </form>
 {% endblock %}

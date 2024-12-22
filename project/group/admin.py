@@ -1,21 +1,16 @@
 from django.contrib import admin
+from .models import Group  # 导入 Group 模型
 
-# Register your models here.
-# admin.py
-from django.contrib import admin
-from django.contrib.auth.models import User
-from employee.models import employee
 
-# 注册 Employee 模型到 admin
-@admin.register(employee)
-class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'sex', 'birthday', 'email', 'phone', 'address', 'department', 'position')
-    search_fields = ('name', 'email', 'phone')
+class GroupMemberInline(admin.TabularInline):
+    model = Group.members.through  # 中介模型，用于管理 ManyToMany 关系
+    extra = 1  # 初始显示 1 个空白成员行
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ['name', 'department', 'leader', 'members_count']
+    readonly_fields = ['name', 'department', 'leader']
 
-# 如果你需要在后台操作 User 模型，通常 User 是默认已经注册的。
-# 如果需要定制 User 模型的展示，你可以这样操作：
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
+    def members_count(self, obj):
+        return obj.members.count()
 
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
+# 注册模型和自定义的 Admin
+admin.site.register(Group, GroupAdmin)

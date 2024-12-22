@@ -1,24 +1,21 @@
-<!-- templates/group/add_member_to_group.html -->
-{% extends 'base.html' %}
+{% extends 'base_update.html' %}
 
-{% block title %}添加成员到小组{% endblock %}
+{% block title %}更新组员{% endblock %}
 
 {% block content %}
-  <h1>添加成员到小组: {{ group.name }}</h1>
+    <h1>更改小组组员：{{ group.name }}</h1>
 
-  <h2>当前小组成员</h2>
-  <ul>
-    {% for member in group.members.all %}
-      <li>{{ member.name }}</li>
-    {% empty %}
-      <p>该小组暂无成员。</p>
-    {% endfor %}
-  </ul>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
 
-  <h2>选择要添加的成员</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">添加成员</button>
-  </form>
+        <button type="submit">确定组员</button>
+    </form>
+    
+    {% if group.leader %}
+        <p>当前组长: {{ group.leader }}(ID: {{ group.leader.id }})</p>
+    {% else %}
+        <p>该小组没有组长。</p>
+    {% endif %}
+
 {% endblock %}

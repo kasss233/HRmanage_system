@@ -1,0 +1,64 @@
+{% extends 'base_list.html' %}
+
+{% block title %}小组管理{% endblock %}
+
+{% block content %}
+    <h1>小组管理</h1>
+ 
+    <p><a href="{% url 'create_group' %}" class="btn btn-primary">添加</a></p>  <!-- 创建小组的链接 -->
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>小组名称</th>
+                    <th>所属部门</th>
+                    <th>组长</th>
+                    <th>小组成员</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                    <tr>
+                        <td>{{ group.name }}</td>
+                        <td>{{ group.department }}</td>
+                        <td>
+                            {% if group.leader %}
+                                {{ group.leader.name }} (ID: {{ group.leader.id }})  <!-- 显示组长的名字和ID -->
+                            {% else %}
+                                无组长
+                            {% endif %}
+                        </td>
+
+                        <!-- 显示小组成员 -->
+                        <td>
+                            <ul>
+                                {% for member in group.members_list %}
+                                    <li>{{ member.name }}(ID: {{ member.id }})</li>  <!-- 显示每个成员的名字 -->
+                                {% empty %}
+                                    <li>无成员</li>  <!-- 如果没有成员 -->
+                                {% endfor %}
+                            </ul>
+                        </td>
+
+                        <td>
+                            <!-- 使用<a>标签直接链接到添加组员页面 -->
+                                <a href="{% url 'add_member_to_group' pk=group.id %}" class="btn btn-primary">更改</a>
+
+                                <!-- 分配组长的链接 -->
+                                <a href="{% url 'assign_group_leader' pk=group.id %}" class="btn btn-primary">任命</a>
+                            <!-- 删除小组按钮 -->
+                            <form method="POST" action="{% url 'delete_group' group.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除该小组吗?')">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+{% endblock %}

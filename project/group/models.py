@@ -1,13 +1,29 @@
 # models.py
 from django.db import models
 from employee.models import employee
-
+DEPARTMENT_CHOICES = [
+    ('技术部', '技术部'),
+    ('市场部', '市场部'),
+    ('人事部', '人事部'),
+    ('财务部', '财务部'),
+    ('行政部', '行政部'),
+    ('研发部', '研发部'),
+    ('销售部', '销售部'),
+    ('客服部', '客服部'),
+    ('运营部', '运营部'),
+    ('采购部', '采购部'),
+    ('售后部', '售后部'),
+    ('公关部', '公关部'),
+    ('战略部', '战略部'),
+    ('人力资源部', '人力资源部'),
+    ('法务部', '法务部'),
+]
 class Group(models.Model):
-    name = models.CharField(max_length=100, blank=True,primary_key=True)  # 小组名称，如 'A组', 'B组'
+    name = models.CharField(max_length=100)  # 小组名称，如 'A组', 'B组'
     department = models.CharField(max_length=100, null=True, blank=True)  # 小组所属部门
-    members = models.ManyToManyField(employee, related_name='groups', blank=True)  # 小组成员
+    members = models.ManyToManyField('employee.employee', related_name='groups', blank=True)  # 小组成员
     leader = models.ForeignKey(
-        'employee.Employee',  # 假设 'employee' 是你员工模型的名称
+        'employee.employee',  # 假设 'employee' 是你员工模型的名称
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,  # 允许为空

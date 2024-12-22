@@ -43,4 +43,7 @@ urlpatterns = [
     path('group/<int:pk>/add_member/', group.views.AddMemberToGroupView.as_view(), name='add_member_to_group'),
     path('group/<int:pk>/assign_leader/', group.views.AssignGroupLeaderView.as_view(), name='assign_group_leader'),
     path('attendance/update/<int:pk>/', attendance.views.AttendanceUpdateView.as_view(), name='attendance_update'),
+    path('group-management/', group.views.GroupManagementView.as_view(), name='group_management'),
+     path('group/<int:group_id>/revoke_leader/', group.views.RevokeGroupLeaderView.as_view(), name='revoke_leader'),  # 添加撤销组长的 URL 路由
+    path('group/<int:pk>/delete/', group.views.DeleteGroupView.as_view(), name='delete_group'),
 ]

@@ -5,13 +5,39 @@ from .models import Group
 from django.apps import apps
 from employee.models import employee
 from django.core.exceptions import ValidationError
+DEPARTMENT_CHOICES = [
+    ('技术部', '技术部'),
+    ('市场部', '市场部'),
+    ('人事部', '人事部'),
+    ('财务部', '财务部'),
+    ('行政部', '行政部'),
+    ('研发部', '研发部'),
+    ('销售部', '销售部'),
+    ('客服部', '客服部'),
+    ('运营部', '运营部'),
+    ('采购部', '采购部'),
+    ('售后部', '售后部'),
+    ('公关部', '公关部'),
+    ('战略部', '战略部'),
+    ('人力资源部', '人力资源部'),
+    ('法务部', '法务部'),
+]
+
+class GroupManagementForm(forms.Form):
+    # 这个表单用于展示小组信息并包含操作按钮
+    group_name = forms.IntegerField(widget=forms.HiddenInput())
+    add_member_button = forms.CharField(widget=forms.HiddenInput(), required=False)
+    assign_leader_button = forms.CharField(widget=forms.HiddenInput(), required=False)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class GroupForm(forms.ModelForm):
-    # 如果你需要定义小组名称等字段，可以添加自定义选择项
-    # 此处示例没有添加额外的选择项，因为字段都比较简单
+    name = forms.CharField(max_length=100, required=True)
+    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select)
     class Meta:
         model = Group
-        fields = ['name', 'department', 'leader']# 假设 Group 模型有这些字段
+        fields = ['name', 'department']# 假设 Group 模型有这些字段
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
@@ -19,7 +45,6 @@ class GroupForm(forms.ModelForm):
         
         
         Employee = apps.get_model('employee', 'Employee')
-        self.fields['leader'].queryset = Employee.objects.all()
  
         # 如果当前用户是部门经理，限制部门选择为当前用户所属的部门
         if user and user.groups.filter(name='department_manager').exists():
@@ -36,36 +61,9 @@ class GroupForm(forms.ModelForm):
                 self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
                 print("部门经理的部门是", current_department)
 
-                # 如果是部门经理，限制可选领导为当前部门的员工
-                self.fields['leader'].queryset = self.fields['leader'].queryset.filter(department=current_department)
-
-                # 如果是部门经理，限制只能选择"员工"或"员工组长"等职位
-                #self.fields['position'].choices = [
-                    #('普通员工', '普通员工'),
-                    #('员工组长', '员工组长'),
-                    #('试用员工', '试用员工')
-                #]
-
             except user.employee.DoesNotExist:
                 print("没有找到对应的员工信息")
-        elif user and user.groups.filter(name='general_manager').exists():
-            # 如果是总经理，允许选择任何部门和任何领导
-            self.fields['leader'].queryset = self.fields['leader'].queryset.all()  # 不做任何限制
-            self.fields['department'].disabled = False  # 总经理可以选择任何部门
-            # 如果是总经理，允许选择所有职位
-            #self.fields['position'].choices = [
-                #('试用员工', '试用员工'),
-                #('普通员工', '普通员工'),
-                #('员工组长', '员工组长'),
-                #('部门经理', '部门经理'),
-                #('总经理', '总经理')
-            #]
-        else:
-            # 如果不是部门经理或总经理，可以根据需要调整
-            self.fields['leader'].queryset = self.fields['leader'].queryset.none()  # 不允许选择任何领导
-            self.fields['department'].disabled = True  # 禁用部门字段
-            #self.fields['position'].disabled = True  # 禁用职位字段
-        def clean_name(self):
+    def clean_name(self):
             name = self.cleaned_data.get('name')
         
             # 判断小组名称是否已存在
@@ -73,22 +71,24 @@ class GroupForm(forms.ModelForm):
                 raise ValidationError(f"小组名称 '{name}' 已经存在，请选择其他名称。")
         
             return name
-            
 class AddMemberForm(forms.ModelForm):
+    
     class Meta:
         model = Group
         fields = ['members']  # 选择成员
-
+        
     members = forms.ModelMultipleChoiceField(
-        queryset=employee.objects.all(),  # 默认展示所有员工
+        queryset=employee.objects.filter(position__in=['普通员工', '实习员工','员工组长']),  # 只显示普通员工、实习员工
         widget=forms.CheckboxSelectMultiple,  # 使用复选框展示
         required=False  # 允许没有选择成员
     )
-
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
+        group = kwargs.pop('group', None)  # 获取当前小组实例
         super().__init__(*args, **kwargs)
-
+        
+        self.fields['members'].queryset=group.members.filter(position__in=['普通员工', '实习员工','员工组长'])
+        
         # 根据当前用户的角色限制成员选择
         if user and user.groups.filter(name='department_manager').exists():
             # 部门经理只能看到自己部门的员工
@@ -103,21 +103,59 @@ class AddMemberForm(forms.ModelForm):
         elif user and user.groups.filter(name='general_manager').exists():
             # 总经理可以看到所有员工
             self.fields['members'].queryset = employee.objects.all()
+
+        # 修改成员的显示方式：姓名 + 部门+ 小组
+        self.fields['members'].label_from_instance = self.get_member_label
+        
+       
+
+    def clean_members(self):
+        selected_members = self.cleaned_data['members']
+        group = self.instance  # 当前小组实例
+
+        # 检查所选成员是否已属于其他小组
+        for member in selected_members:
+            # 如果成员已经在其他小组中，并且不是当前小组的成员，抛出验证错误
+            if member.groups.exclude(id=group.id).exists():  # 排除当前小组，检查是否属于其他小组
+                raise ValidationError(f"{member.name} 已是其他小组的成员，无法重复添加。")
+        return selected_members
+
+    def get_member_label(self, obj):
+        """
+        定制成员显示标签格式：姓名 + 部门 + 小组
+        """
+        return f"{obj.name} + {obj.department} + {obj.groups.first() if obj.groups.exists() else '未分配小组'}"
             
 class AssignGroupLeaderForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = ['leader']  # 只允许选择新的组长
 
-    leader = forms.ModelChoiceField(queryset=employee.objects.all())  # 选择新组长
+    leader = forms.ModelChoiceField(
+        queryset=employee.objects.all(),  # 选择组长的成员
+        required=False  # 使得 leader 字段可以为空
+    )
 
     def __init__(self, *args, **kwargs):
+        group = kwargs.pop('group', None)  # 获取当前小组实例
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)
+        
+        if group:
+            # 限制组长选择范围，只能选择该小组的成员，并且职位为普通员工、实习员工、员工组长
+            self.fields['leader'].queryset = group.members.filter(position__in=['普通员工', '实习员工', '员工组长'])
+            
+            
+        self.fields['leader'].label_from_instance = self.get_leader_label
+        
+    def get_leader_label(self, member):
+        return f"{member.name} (ID: {member.id})"  # 显示姓名和 ID
+    def clean_leader(self):
+        leader = self.cleaned_data.get('leader')
 
-        if user and user.groups.filter(name='department_manager').exists():
-            employees = employee.objects.get(user=user)
-            self.fields['leader'].queryset = employee.objects.filter(department=employees.department)
+        # 如果选择了组长，且该成员的职位不符合要求，抛出验证错误
+        if leader and leader.position not in ['普通员工', '实习员工', '员工组长']:
+            raise forms.ValidationError(f"只有职位为 '普通员工'、'实习员工' 或 '员工组长' 的成员可以成为组长！")
 
-        elif user and user.groups.filter(name='general_manager').exists():
-            self.fields['leader'].queryset = employee.objects.all()
+        return leader
+ 
