@@ -57,10 +57,10 @@ class EmployeeForm(forms.ModelForm):
     birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2100)))
     position = forms.ChoiceField(choices=POSITION_CHOICES, widget=forms.Select)
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select)
-    
+    details=forms.CharField(widget=forms.Textarea,required=False)
     class Meta:
         model = employee
-        fields = ['id','name', 'sex', 'birthday', 'email', 'phone', 'address','department','position']
+        fields = ['id','name', 'sex', 'birthday', 'email', 'phone', 'address','department','position','details']
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)

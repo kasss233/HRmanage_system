@@ -86,6 +86,7 @@
                             <td>
                                 <div class="button-container">
                                     <!-- 更新按钮 -->
+                                    <a href="{% url 'employee_detail' emp.id %}"class="btn btn-primary">详细</a>
                                     <a href="{% url 'employee_update' emp.pk %}" class="btn btn-primary">更新</a>
                                     
                                     <!-- 删除按钮 -->
