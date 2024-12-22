@@ -4,13 +4,13 @@
 
 {% block content %}
     <h1>小组管理</h1>
- 
+
     <p><a href="{% url 'create_group' %}" class="btn btn-primary">添加</a></p>  <!-- 创建小组的链接 -->
 
     <form method="POST">
         {% csrf_token %}
         
-        <table border="1">
+        <table class="employee-list">
             <thead>
                 <tr>
                     <th>小组名称</th>
@@ -27,34 +27,31 @@
                         <td>{{ group.department }}</td>
                         <td>
                             {% if group.leader %}
-                                {{ group.leader.name }} (ID: {{ group.leader.id }})  <!-- 显示组长的名字和ID -->
+                                {{ group.leader.name }} (ID: {{ group.leader.id }})
                             {% else %}
                                 无组长
                             {% endif %}
                         </td>
 
-                        <!-- 显示小组成员 -->
                         <td>
                             <ul>
                                 {% for member in group.members_list %}
-                                    <li>{{ member.name }}(ID: {{ member.id }})</li>  <!-- 显示每个成员的名字 -->
+                                    <li>{{ member.name }}(ID: {{ member.id }})</li>
                                 {% empty %}
-                                    <li>无成员</li>  <!-- 如果没有成员 -->
+                                    <li>无成员</li>
                                 {% endfor %}
                             </ul>
                         </td>
 
-                        <td>
-                            <!-- 使用<a>标签直接链接到添加组员页面 -->
-                                <a href="{% url 'add_member_to_group' pk=group.id %}" class="btn btn-primary">更改</a>
+                        <td class="button-container">
+                            <!-- 添加组员 -->
+                            <a href="{% url 'add_member_to_group' pk=group.id %}" class="btn btn-primary">更改</a>
 
-                                <!-- 分配组长的链接 -->
-                                <a href="{% url 'assign_group_leader' pk=group.id %}" class="btn btn-primary">任命</a>
-                            <!-- 删除小组按钮 -->
-                            <form method="POST" action="{% url 'delete_group' group.id %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除该小组吗?')">删除</button>
-                            </form>
+                            <!-- 任命组长 -->
+                            <a href="{% url 'assign_group_leader' pk=group.id %}" class="btn btn-primary">任命</a>
+
+                            <!-- 删除小组链接 -->
+                            <a href="{% url 'delete_group' pk=group.id %}" class="btn btn-danger">删除</a>
                         </td>
                     </tr>
                 {% endfor %}

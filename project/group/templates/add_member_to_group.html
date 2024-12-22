@@ -1,21 +1,37 @@
-{% extends 'base_update.html' %}
+{% extends 'base.html' %}
 
 {% block title %}更新组员{% endblock %}
 
 {% block content %}
-    <h1>更改小组组员：{{ group.name }}</h1>
+    <h1>更新小组成员：{{ group.name }}</h1>
+
+    <form method="GET">
+        <label for="employee_id_filter">筛选员工 ID：</label>
+        <input type="number" name="employee_id_filter" id="employee_id_filter" min="1" placeholder="输入员工ID进行筛选">
+        <button type="submit">筛选</button>
+    </form>
 
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit">确定组员</button>
+        {% if form.fields.members.queryset.exists %}
+            {{ form.as_p }}
+            <button type="submit">更新组员</button>
+        {% else %}
+            <p style="color: red;">未找到该员工。</p>
+        {% endif %}
     </form>
-    
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {% if group.leader %}
-        <p>当前组长: {{ group.leader }}(ID: {{ group.leader.id }})</p>
+        <p>当前组长: {{ group.leader }} (ID: {{ group.leader.id }})</p>
     {% else %}
         <p>该小组没有组长。</p>
     {% endif %}
-
 {% endblock %}

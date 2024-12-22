@@ -29,6 +29,7 @@ def is_manager_or_leader(user):
     )
 @method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
 class AddMemberToGroupView(UpdateView):
+    
     model = Group
     form_class = AddMemberForm
     template_name = 'add_member_to_group.html'
@@ -46,10 +47,10 @@ class AddMemberToGroupView(UpdateView):
         group = self.get_object()  # 获取当前小组实例
         kwargs['group'] = group  # 将小组实例传递给表单
         user = self.request.user
-
+        employee_id_filter = self.request.GET.get('employee_id_filter', None)  # 获取员工 ID 过滤器
         # 仅将当前用户传递给表单，而不传递 queryset
         kwargs['user'] = user
-
+        kwargs['employee_id_filter'] = employee_id_filter  # 传递员工 ID 过滤器
         return kwargs
 
     def form_valid(self, form):
@@ -189,8 +190,23 @@ class GroupManagementView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
         groups = Group.objects.all()  # 获取所有小组
+        # 员工组长：只显示自己小组
+        if user.groups.filter(name='group_leader').exists():
+            # 获取当前用户的组长小组
+            employees = employee.objects.get(user=user)
+            groups = employees.groups.all()  # 获取该组长负责的小组
 
+        # 部门经理：只显示自己部门的小组
+        elif user.groups.filter(name='department_manager').exists():
+            # 获取当前用户的部门
+            employees = employee.objects.get(user=user)
+            groups = Group.objects.filter(department=employees.department)  # 根据部门过滤小组
+
+        # 总经理：显示所有小组
+        elif user.groups.filter(name='general_manager').exists():
+            groups = Group.objects.all()  # 总经理查看所有小组
         # 获取每个小组的成员
         for group in groups:
             group_members = group.members.all()  # 获取小组的所有成员
@@ -220,8 +236,12 @@ class GroupManagementView(LoginRequiredMixin, TemplateView):
         return redirect('group_management')  # 如果表单不合法，重定向到小组管理页面
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class DeleteGroupView(View):
+    def get(self, request, pk):
+        group = get_object_or_404(Group, pk=pk)
+        return render(request, 'group/delete_group.html', {'group': group})
     def post(self, request, pk):
         group = get_object_or_404(Group, pk=pk)
+        
 
         # 获取当前用户
         user = request.user

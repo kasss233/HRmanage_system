@@ -85,10 +85,21 @@ class AddMemberForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
         group = kwargs.pop('group', None)  # 获取当前小组实例
+        employee_id_filter = kwargs.pop('employee_id_filter', None)  # 获取员工 ID 过滤器
         super().__init__(*args, **kwargs)
         
-        self.fields['members'].queryset=group.members.filter(position__in=['普通员工', '实习员工','员工组长'])
+        # 获取当前小组的部门
+        if group:
+            current_department = group.department
+        else:
+            current_department = None
+        # 如果有员工 ID 筛选条件，按 ID 筛选员工
+        employees = employee.objects.filter(department=current_department)  # 只显示当前小组所属部门的员工
         
+        if employee_id_filter:
+            employees = employees.filter(id=employee_id_filter)
+
+                
         # 根据当前用户的角色限制成员选择
         if user and user.groups.filter(name='department_manager').exists():
             # 部门经理只能看到自己部门的员工
@@ -103,7 +114,9 @@ class AddMemberForm(forms.ModelForm):
         elif user and user.groups.filter(name='general_manager').exists():
             # 总经理可以看到所有员工
             self.fields['members'].queryset = employee.objects.all()
-
+            
+        # 根据员工 ID 筛选后的结果更新成员列表
+        self.fields['members'].queryset = employees
         # 修改成员的显示方式：姓名 + 部门+ 小组
         self.fields['members'].label_from_instance = self.get_member_label
         
