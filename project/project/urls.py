@@ -17,7 +17,6 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-import testapp.views
 import employee.views
 import group.views
 import attendance.views
@@ -46,4 +45,6 @@ urlpatterns = [
     path('group-management/', group.views.GroupManagementView.as_view(), name='group_management'),
      path('group/<int:group_id>/revoke_leader/', group.views.RevokeGroupLeaderView.as_view(), name='revoke_leader'),  # 添加撤销组长的 URL 路由
     path('group/<int:pk>/delete/', group.views.DeleteGroupView.as_view(), name='delete_group'),
+    path('employee/<int:pk>/', employee.views.EmployeeDetailView.as_view(), name='employee_detail'),  # 新增详细信息页面
 ]
+

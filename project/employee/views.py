@@ -39,6 +39,7 @@ class list_view(ListView):
         sex = self.request.GET.get('sex', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
         department = self.request.GET.get('department', '').strip()
+        details = self.request.GET.get('details', '').strip()
         if user.groups.filter(name='department_manager').exists():
             department = user.employee.department
         # 按照查询条件过滤
@@ -50,7 +51,8 @@ class list_view(ListView):
             queryset = queryset.filter(birthday=birthday)
         if department:
             queryset = queryset.filter(department=department)
-
+        if details:
+            queryset = queryset.filter(details__icontains=details)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -78,7 +80,7 @@ class list_view(ListView):
         response.charset = 'GBK'
         # 写入 CSV 文件内容
         writer = csv.writer(response)
-        writer.writerow(['ID', '姓名', '性别', '生日', '邮箱', '电话', '地址', '部门', '职位'])  # 表头
+        writer.writerow(['ID', '姓名', '性别', '生日', '邮箱', '电话', '地址', '部门', '职位','技能'])  # 表头
         for emp in queryset:
             writer.writerow([
                 emp.id,
@@ -90,6 +92,7 @@ class list_view(ListView):
                 emp.address,
                 emp.department,
                 emp.position,
+                emp.details
             ])
         return response
     
@@ -243,3 +246,11 @@ class frontpage_view(LoginRequiredMixin, DetailView):
     def get_object(self, queryset=None):
         # 获取当前登录用户对应的员工对象
         return self.request.user.employee  # 通过 request.user 获取当前用户的 Employee 关联对象
+from django.shortcuts import render
+from django.views.generic import DetailView
+from .models import employee
+
+class EmployeeDetailView(DetailView):
+    model = employee
+    template_name = 'employee_detail.html'  # 创建新的模板
+    context_object_name = 'employee'  # 模板中使用 'employee' 来访问员工对象

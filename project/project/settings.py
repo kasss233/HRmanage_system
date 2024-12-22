@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "group.apps.GroupConfig",
     "attendance.apps.AttendanceConfig",
     "accounts.apps.AccountsConfig",
-    "salary.apps.SalaryConfig"
+    "salary.apps.SalaryConfig",
 ]
 
 MIDDLEWARE = [
