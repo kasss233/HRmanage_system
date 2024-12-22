@@ -32,7 +32,6 @@ urlpatterns = [
     path("employee/update/<int:pk>/",employee.views.update_view.as_view(),name="employee_update"),
     path("attendance/",attendance.views.list_view,name="attendance_list"),
     path("",accounts.views.login_view,name="login"),
-    path("login/",accounts.views.login_view,name="login"),
     path("register/",accounts.views.register_view,name="register"),
     path("logout/",accounts.views.logout_view,name="logout"),
     path("sign",attendance.views.sign,name="sign"),

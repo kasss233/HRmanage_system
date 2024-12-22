@@ -56,7 +56,6 @@ class GroupForm(forms.ModelForm):
                 # 限制 department 字段的选择项为当前部门
                 self.fields['department'].choices = [(current_department, current_department)]
                 # 禁用部门选择字段
-                self.fields['department'].disabled = True  # 禁用字段，不可编辑
                 # 使用 TextInput 显示部门名称，并使其不可编辑
                 self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
                 print("部门经理的部门是", current_department)

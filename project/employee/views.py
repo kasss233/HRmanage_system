@@ -40,6 +40,7 @@ class list_view(ListView):
         birthday = self.request.GET.get('birthday', '').strip()
         department = self.request.GET.get('department', '').strip()
         details = self.request.GET.get('details', '').strip()
+        group=self.request.GET.get('group','').strip()
         if user.groups.filter(name='department_manager').exists():
             department = user.employee.department
         # 按照查询条件过滤
@@ -53,15 +54,13 @@ class list_view(ListView):
             queryset = queryset.filter(department=department)
         if details:
             queryset = queryset.filter(details__icontains=details)
+        if group:
+            queryset=queryset.filter(group=group)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # 将当前用户传递给表单
         context['form'] = EmployeeFilterForm(self.request.GET, user=self.request.user)
-
-         # 获取查询参数并排除空值
         query_params = self.request.GET.dict()
         query_params.pop('page', None)  # 删除分页参数，但保留其他筛选参数
         # 传递 query_params 供模板分页器使用
@@ -104,8 +103,13 @@ class create_view(CreateView):
     success_url = reverse_lazy('employee_list')  # 保存成功后重定向到列表视图
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = EmployeeForm(self.request.GET, user=self.request.user)
         return context
+
+    def get_form_kwargs(self):
+        # 获取表单的初始参数
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # 将当前用户传递给表单
+        return kwargs
     def form_valid(self, form):
         # 首先保存员工对象
         employee = form.save()
@@ -121,6 +125,8 @@ class create_view(CreateView):
         )
         employee.user = user
         employee.save()
+        print(f"用户 {username} 创建成功")
+        print(f"员工 {employee.name} 的职位是 {employee.position}")
         # 将用户添加到 'employee' 组
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
@@ -194,7 +200,7 @@ class update_view(UpdateView):
 from django.db.models import Q
 
 
-@method_decorator(group_required('department_manager', 'general_manager', 'employee'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager', 'employee','group_leader'), name='dispatch')
 class frontpage_view(LoginRequiredMixin, DetailView):
     model = employee  # 你的员工模型
     template_name = 'employee_frontpage.html'  # 渲染模板

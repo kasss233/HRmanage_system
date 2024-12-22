@@ -22,15 +22,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)  # 登录用户
-            position=user.employee.position
-            if position == '普通员工' or position == '试用员工':
-                return redirect('employee_frontpage')  # 跳转到主页
-            elif position =='组长':
-                return redirect('employee_frontpage')
-            elif position == '部门经理':
-                return redirect('employee_frontpage')
-            elif position == '总经理':
-                return redirect('employee_frontpage')
+            return redirect('employee_frontpage')
     else:
         form = LoginForm()
     return render(request, 'accounts_login.html', {'form': form})
