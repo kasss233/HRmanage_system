@@ -3,10 +3,13 @@ from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
+from django.http import HttpResponseForbidden
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from .models import Group
 from .forms import GroupForm
-from .decorators import group_required
+from django.contrib.auth.decorators import user_passes_test
+from employee.decorators import group_required
 from django.views.generic import UpdateView
 from django.views.generic import TemplateView
 from django.views.generic import View
@@ -19,7 +22,12 @@ from django.urls import reverse_lazy
 from employee.models import employee
 # Create your views here.
 # views.py
-
+# 权限控制函数，检查是否为总经理、部门经理或员工组长
+def is_manager_or_leader(user):
+    return user.is_authenticated and (
+        user.profile.role in ['总经理', '部门经理', '员工组长']
+    )
+@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
 class AddMemberToGroupView(UpdateView):
     model = Group
     form_class = AddMemberForm
@@ -54,7 +62,7 @@ class AddMemberToGroupView(UpdateView):
 
         return super().form_valid(form)
 
-
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class AssignGroupLeaderView(UpdateView):
     model = Group
     template_name = 'assign_group_leader.html'
@@ -107,7 +115,7 @@ class AssignGroupLeaderView(UpdateView):
 
         # 重定向到小组列表页面
         return redirect(self.success_url)  # 不传递 pk
-
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class RevokeGroupLeaderView(View):
     def post(self, request, group_id):
         # 获取小组实例
@@ -167,15 +175,6 @@ class CreateGroupView(CreateView):
                 group.delete()
                 return self.render_to_response(self.get_context_data(result=result_message))
         
-      # 如果是员工组长，限制只能创建自己部门的小组
-        if self.request.user.groups.filter(name='group_leader').exists():
-            employee_obj = self.request.user.employee
-            current_department = employee_obj.department
-            if group.department != current_department:
-                result_message = "您只能创建属于您部门的小组！"
-                group.delete()
-                return self.render_to_response(self.get_context_data(result=result_message))
-        
         return self.render_to_response(self.get_context_data(result=result_message))
 
     def form_invalid(self, form):
@@ -184,13 +183,15 @@ class CreateGroupView(CreateView):
         result_message = "表单验证失败，请检查填写的内容。"
         return self.render_to_response(self.get_context_data(result=result_message))
     
-class GroupManagementView(TemplateView):
+@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')    
+class GroupManagementView(LoginRequiredMixin, TemplateView):
     template_name = 'group_management.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         groups = Group.objects.all()  # 获取所有小组
-         # 获取每个小组的成员
+
+        # 获取每个小组的成员
         for group in groups:
             group_members = group.members.all()  # 获取小组的所有成员
             group.members_list = group_members 
@@ -217,6 +218,7 @@ class GroupManagementView(TemplateView):
                 return redirect('assign_leader', group_name=group.name)
         
         return redirect('group_management')  # 如果表单不合法，重定向到小组管理页面
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class DeleteGroupView(View):
     def post(self, request, pk):
         group = get_object_or_404(Group, pk=pk)
