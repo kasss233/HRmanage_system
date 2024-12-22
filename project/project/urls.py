@@ -17,7 +17,6 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-import testapp.views
 import employee.views
 import group.views
 import attendance.views
