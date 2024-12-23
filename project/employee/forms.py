@@ -11,8 +11,6 @@ POSITION_CHOICES = [
         ('员工组长', '员工组长'),
         ('总经理', '总经理'),
         ('部门经理', '部门经理'),
-
-
     ]
 DEPARTMENT_CHOICES = [
         ('技术部', '技术部'),
@@ -83,4 +81,5 @@ class EmployeeDeleteForm(forms.ModelForm):
             'address': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让地址字段只读
             'department': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让部门字段只读
             'position': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让职位字段只读
+            'group': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让小组字段只读
         }
