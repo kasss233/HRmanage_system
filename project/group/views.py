@@ -12,7 +12,9 @@ from django.contrib.auth.decorators import user_passes_test
 from employee.decorators import group_required
 from django.views.generic import UpdateView
 from django.views.generic import TemplateView
-from django.views.generic import View
+from django.views.generic import DetailView, View
+from .forms import GroupFilterForm
+from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from .forms import AssignGroupLeaderForm
 from django.contrib import messages
@@ -27,42 +29,119 @@ def is_manager_or_leader(user):
     return user.is_authenticated and (
         user.profile.role in ['总经理', '部门经理', '员工组长']
     )
+@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')    
+class GroupDetailView(DetailView):
+    model = Group
+    template_name = 'group_detail.html'
+    context_object_name = 'group'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        group = self.object
+        # 获取当前小组所有成员
+        context['members'] = group.members.all()
+
+
+        # 获取当前小组组长信息
+        if group.leader:
+            context['leader_name'] = group.leader.name
+            context['leader_id'] = group.leader.id
+        else:
+            context['leader_name'] = None
+            context['leader_id'] = None
+            
+       # 获取可以添加的成员：属于当前小组部门且为普通员工或试用员工
+        # 首先，检查小组是否有部门，防止获取 `None` 的部门
+        if group.department:
+            available_employees = employee.objects.filter(
+                position__in=['普通员工', '试用员工'],
+                department=group.department
+            ).exclude(groups=group)  # 排除当前小组成员
+        else:
+            available_employees = employee.objects.none()  # 如果没有部门，返回空的查询集
+        
+        # 如果传递了员工ID进行过滤
+        employee_id_filter = self.request.GET.get('employee_id_filter', None)
+        if employee_id_filter:
+            available_employees = available_employees.filter(id=employee_id_filter)
+
+        context['available_employees'] = available_employees
+        return context
+    def post(self, request, *args, **kwargs):
+        group = self.get_object()
+        employee_id = request.POST.get('employee_id')
+        action = request.POST.get('action')
+
+        if action == 'add_member' and employee_id:
+            try:
+                employees = employee.objects.get(id=employee_id)
+                if group.members.count() < 4:  # 判断小组成员是否少于 4
+                    group.members.add(employees)
+                    messages.success(request, f"{employees.name} 已成功添加到小组。")
+                else:
+                    messages.error(request, "小组成员已满，最多只能有 4 名成员。")
+            except employee.DoesNotExist:
+                messages.error(request, "未找到该员工。")
+        elif action == 'remove_member' and employee_id:
+            try:
+                employee_to_remove = employee.objects.get(id=employee_id)
+                # 如果被删除的是组长，执行特殊操作
+                 # 检查是否是组长，若是组长则不可删除
+                if group.leader == employee_to_remove:
+                    messages.error(request, "小组组长不能被删除。")
+                else:
+                    group.members.remove(employee_to_remove)
+                    messages.success(request, f"{employee_to_remove.name} 已从小组中移除。")
+            except employee.DoesNotExist:
+                messages.error(request, "未找到该员工。")
+            except ValueError:
+                messages.error(request, "员工 ID 必须是一个有效的整数。")
+        
+        return redirect('group_detail', pk=group.id)  # 刷新页面，显示更新后的成员列表
 @method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
 class AddMemberToGroupView(UpdateView):
-    
     model = Group
     form_class = AddMemberForm
     template_name = 'add_member_to_group.html'
     success_url = reverse_lazy('group_management')  # 成功后跳转到小组列表页面
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['group'] = self.object  # 获取当前小组对象
-        context['user'] = self.request.user  # 获取当前用户信息，传递给表单
-        return context
+    def post(self, request, group_id):
+        group = Group.objects.get(id=group_id)
+        employee_id = request.POST.get('employee_id')
 
-    def get_form_kwargs(self):
-        # 获取当前用户
-        kwargs = super().get_form_kwargs()
-        group = self.get_object()  # 获取当前小组实例
-        kwargs['group'] = group  # 将小组实例传递给表单
-        user = self.request.user
-        employee_id_filter = self.request.GET.get('employee_id_filter', None)  # 获取员工 ID 过滤器
-        # 仅将当前用户传递给表单，而不传递 queryset
-        kwargs['user'] = user
-        kwargs['employee_id_filter'] = employee_id_filter  # 传递员工 ID 过滤器
-        return kwargs
+        try:
+            member = employee.objects.get(id=employee_id)
 
-    def form_valid(self, form):
-        # 在提交表单前，确保所有被添加的成员都在相同部门
-        group = self.get_object()
-        for member in form.cleaned_data['members']:
-            if member.department != group.department:
-                form.add_error('members', f"员工 {member.name} 不属于该小组所属的部门！")
-                return self.form_invalid(form)
+            # 判断该员工是否符合可添加条件
+            if member.department == group.department and member.position in ['普通员工', '试用员工']:
+                if group.members.count() < 4:  # 判断小组成员是否少于 4 人
+                    group.members.add(member)
+                    messages.success(request, f"{member.name} 已成功添加到小组。")
+                else:
+                    messages.error(request, "小组成员已满，最多只能有 4 名成员。")
+            else:
+                messages.error(request, "该员工不符合添加条件。")
 
-        return super().form_valid(form)
+        except employee.DoesNotExist:
+            messages.error(request, "未找到该员工。")
 
+        return redirect('group_detail', pk=group.id)  # 跳转到小组详情页面
+@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')   
+class RemoveMemberFromGroupView(View):
+    def post(self, request, group_id, employee_id):
+        # 获取当前小组和员工
+        group = get_object_or_404(Group, id=group_id)
+        member = get_object_or_404(employee, id=employee_id)
+
+        # 检查当前用户是否有权限删除该成员
+        if not group.members.filter(id=member.id).exists():
+            return HttpResponseForbidden("您不能删除该成员。")
+
+        # 从小组中移除该成员
+        group.members.remove(member)
+
+        # 重新定向到当前小组页面或其他相关页面
+        return redirect('group_detail', pk=group.id)  # 跳转到小组详情页面
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class AssignGroupLeaderView(UpdateView):
     model = Group
@@ -104,6 +183,8 @@ class AssignGroupLeaderView(UpdateView):
         if group.leader and group.leader != new_leader:
             # 将原组长的职位改为 "普通员工"
             group.leader.position = '普通员工'
+            group.leader.user.groups.remove(Group.objects.get(name='group_leader'))  # 移除员工组长角色
+            group.leader.user.groups.add(Group.objects.get(name='employee'))  # 添加普通员工角色
             group.leader.save()
 
         # 更新小组的组长
@@ -112,6 +193,8 @@ class AssignGroupLeaderView(UpdateView):
 
         # 更新新的组长的职位为 "员工组长"
         new_leader.position = '员工组长'
+        new_leader.user.groups.remove(Group.objects.get(name='employee'))  # 移除普通员工角色
+        new_leader.user.groups.add(Group.objects.get(name='group_leader'))  # 添加员工组长角色
         new_leader.save()
 
         # 重定向到小组列表页面
@@ -185,60 +268,38 @@ class CreateGroupView(CreateView):
         return self.render_to_response(self.get_context_data(result=result_message))
     
 @method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')    
-class GroupManagementView(LoginRequiredMixin, TemplateView):
+class GroupManagementView(TemplateView):
     template_name = 'group_management.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        groups = Group.objects.all()  # 获取所有小组
-        # 员工组长：只显示自己小组
-        if user.groups.filter(name='group_leader').exists():
-            # 获取当前用户的组长小组
-            employees = employee.objects.get(user=user)
-            groups = employees.groups.all()  # 获取该组长负责的小组
-
-        # 部门经理：只显示自己部门的小组
-        elif user.groups.filter(name='department_manager').exists():
-            # 获取当前用户的部门
-            employees = employee.objects.get(user=user)
-            groups = Group.objects.filter(department=employees.department)  # 根据部门过滤小组
-
-        # 总经理：显示所有小组
-        elif user.groups.filter(name='general_manager').exists():
-            groups = Group.objects.all()  # 总经理查看所有小组
-        # 获取每个小组的成员
-        for group in groups:
-            group_members = group.members.all()  # 获取小组的所有成员
-            group.members_list = group_members 
-        context['groups'] = groups
-        context['form'] = GroupManagementForm()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        form = GroupManagementForm(request.POST)
-
-        if form.is_valid():
-            group_id = form.cleaned_data['group_name']
-            add_member_button = form.cleaned_data.get('add_member_button')
-            assign_leader_button = form.cleaned_data.get('assign_leader_button')
-            
-            # 根据按钮点击执行不同的操作
-            group = Group.objects.get(id=group_id)
-            
-            if add_member_button:
-                # 处理添加组员的逻辑
-                return redirect('add_member', group_name=group.name)
-            elif assign_leader_button:
-                # 处理分配组长的逻辑
-                return redirect('assign_leader', group_name=group.name)
+    
+    def get(self, request, *args, **kwargs):
+        # 获取筛选表单并进行过滤
+        form = GroupFilterForm(request.GET, user=request.user)  # 提供当前用户信息
+        groups = Group.objects.all()  # 默认获取所有小组
         
-        return redirect('group_management')  # 如果表单不合法，重定向到小组管理页面
+        if form.is_valid():
+            # 根据表单字段进行筛选
+            group_id = form.cleaned_data.get('id')
+            group_name = form.cleaned_data.get('name')
+            department = form.cleaned_data.get('department')
+
+            if group_id:
+                groups = groups.filter(id=group_id)
+            if group_name:
+                groups = groups.filter(name__icontains=group_name)
+            if department:
+                groups = groups.filter(department=department)
+
+        # 将筛选结果传递给模板
+        context = {
+            'form': form,
+            'groups': groups
+        }
+        return self.render_to_response(context)
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class DeleteGroupView(View):
     def get(self, request, pk):
         group = get_object_or_404(Group, pk=pk)
-        return render(request, 'group/delete_group.html', {'group': group})
+        return render(request, 'delete_group.html', {'group': group})
     def post(self, request, pk):
         group = get_object_or_404(Group, pk=pk)
         
@@ -273,6 +334,8 @@ class DeleteGroupView(View):
         if group.leader:  # 假设每个小组都有一个 leader（组长）
             leader = group.leader
             leader.position = '普通员工'  # 将职位改为普通员工
+            leader.user.groups.remove(Group.objects.get(name='group_leader'))
+            leader.user.groups.add(Group.objects.get(name='employee'))
             leader.save()
         # 如果权限通过，删除小组
         

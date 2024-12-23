@@ -11,8 +11,6 @@ POSITION_CHOICES = [
         ('员工组长', '员工组长'),
         ('总经理', '总经理'),
         ('部门经理', '部门经理'),
-
-
     ]
 DEPARTMENT_CHOICES = [
         ('技术部', '技术部'),
@@ -46,12 +44,9 @@ class EmployeeFilterForm(forms.Form):
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)
         if user.groups.filter(name='department_manager').exists():  # 判断是否为部门经理
-            current_department = user.employee.department 
-            self.fields['department'].choices = [(current_department, current_department)]
+            self.fields['department'].disabled = True  # 禁用字段，不可编辑
         elif user.groups.filter(name='group_leader').exists():
-            current_department = user.employee.department 
-            self.fields['department'].choices = [(current_department, current_department)] 
-            self.fields['group'].disabled = True
+            pass  
 
 class EmployeeForm(forms.ModelForm):
     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select)
@@ -86,4 +81,5 @@ class EmployeeDeleteForm(forms.ModelForm):
             'address': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让地址字段只读
             'department': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让部门字段只读
             'position': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让职位字段只读
+            'group': forms.TextInput(attrs={'readonly': 'readonly'}),  # 让小组字段只读
         }

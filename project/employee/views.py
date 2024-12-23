@@ -43,9 +43,6 @@ class list_view(ListView):
         group=self.request.GET.get('group','').strip()
         if user.groups.filter(name='department_manager').exists():
             department = user.employee.department
-        elif user.groups.filter(name='group_leader').exists():
-            group=user.employee.group
-            department=user.employee.department
         # 按照查询条件过滤
         if name:
             queryset = queryset.filter(name__icontains=name)

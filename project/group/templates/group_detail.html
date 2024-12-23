@@ -1,0 +1,65 @@
+{% extends 'base_update.html' %}
+
+{% block title %}小组详情{% endblock %}
+
+{% block content %}
+    <h1>当前小组：{{ group.name }}</h1>
+
+     <!-- 显示消息 -->
+     {% if messages %}
+     <div class="alert-container">
+         {% for message in messages %}
+             <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                 {{ message }}
+             </div>
+         {% endfor %}
+     </div>
+ {% endif %}
+ <h3>当前小组组长：</h3>
+ {% if leader_name %}
+     <p>组长姓名：{{ leader_name }} (ID: {{ leader_id }})</p>
+ {% else %}
+     <p>该小组尚未设置组长。</p>
+ {% endif %}
+ 
+    <h3>当前小组成员：</h3>
+    <ul>
+        {% for member in group.members.all %}
+            <li>
+                {{ member.name }} (ID: {{ member.id }})
+                <form method="POST" action="{% url 'group_detail' pk=group.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="employee_id" value="{{ member.id }}">
+                    <input type="hidden" name="action" value="remove_member">
+                    <button type="submit" onclick="return confirm('确定要移除该成员吗？')"style="border: 1px solid red; background-color: red; color: white; font-size: 12px; padding: 5px 10px; cursor: pointer; border-radius: 5px;">移除</button>
+                </form>
+            </li>
+        {% empty %}
+            <li>无成员</li>
+        {% endfor %}
+    </ul>
+
+    <h3>可添加的成员：</h3>
+    <form method="GET">
+        <label for="employee_id_filter">筛选员工 ID：</label>
+        <input type="number" name="employee_id_filter" id="employee_id_filter" placeholder="输入员工 ID" min="1">
+        <button type="submit" class="btn btn-secondary">筛选</button>
+    </form>
+
+    {% if available_employees %}
+        <form method="POST">
+            {% csrf_token %}
+            <label for="employee_id">选择员工:</label>
+            <select name="employee_id" id="employee_id">
+                {% for employee in available_employees %}
+                    <option value="{{ employee.id }}">{{ employee.name }} (ID: {{ employee.id }})</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="action" value="add_member">
+            <button type="submit" class="btn btn-primary">添加成员</button>
+        </form>
+    {% else %}
+        <p style="color: red; font-weight: bold;">未找到指定员工</p>
+        <li><a href="{% url 'group_management' %}">返回小组管理</a></li>
+    {% endif %}
+{% endblock %}

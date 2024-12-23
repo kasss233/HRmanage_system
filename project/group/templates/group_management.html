@@ -2,60 +2,73 @@
 
 {% block title %}小组管理{% endblock %}
 
+{% block header %}
+    <nav>
+        <ul>
+            <li><a href="{% url 'logout' %}">登出</a></li>
+            <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
+            <li><a href="{% url 'sign' %}">签到签退</a></li>
+            <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
+            <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+            <li><a href="{% url 'group_management' %}">小组管理</a></li>
+        </ul>
+    </nav>
+{% endblock %}
+
 {% block content %}
     <h1>小组管理</h1>
 
-    <p><a href="{% url 'create_group' %}" class="btn btn-primary">添加</a></p>  <!-- 创建小组的链接 -->
-
-    <form method="POST">
-        {% csrf_token %}
-        
-        <table class="employee-list">
-            <thead>
-                <tr>
-                    <th>小组名称</th>
-                    <th>所属部门</th>
-                    <th>组长</th>
-                    <th>小组成员</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for group in groups %}
-                    <tr>
-                        <td>{{ group.name }}</td>
-                        <td>{{ group.department }}</td>
-                        <td>
-                            {% if group.leader %}
-                                {{ group.leader.name }} (ID: {{ group.leader.id }})
-                            {% else %}
-                                无组长
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            <ul>
-                                {% for member in group.members_list %}
-                                    <li>{{ member.name }}(ID: {{ member.id }})</li>
-                                {% empty %}
-                                    <li>无成员</li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-
-                        <td class="button-container">
-                            <!-- 添加组员 -->
-                            <a href="{% url 'add_member_to_group' pk=group.id %}" class="btn btn-primary">更改</a>
-
-                            <!-- 任命组长 -->
-                            <a href="{% url 'assign_group_leader' pk=group.id %}" class="btn btn-primary">任命</a>
-
-                            <!-- 删除小组链接 -->
-                            <a href="{% url 'delete_group' pk=group.id %}" class="btn btn-danger">删除</a>
-                        </td>
-                    </tr>
+    <div class="content-wrapper">
+        <!-- 过滤表单部分 -->
+        <div class="filter-form">
+            <h2>筛选器</h2>
+            <form method="get">
+                {{ form.as_p }}  <!-- 渲染表单字段 -->
+                <button type="submit">筛选</button>
+            </form>
+        </div>
+        <!-- 小组列表表格部分 -->
+        <div class="button-container">
+            <a href="{% url 'create_group' %}" class="btn btn-primary">添加</a>
+            <form method="get" action="{% url 'group_management' %}">
+                <!-- 保留当前筛选条件 -->
+                {% for key, value in request.GET.items %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
                 {% endfor %}
-            </tbody>
-        </table>
-    </form>
+            </form>
+        </div>
+        <!-- 小组列表表格部分 -->
+        <div class="employee-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>小组ID</th>
+                        <th>小组名称</th>
+                        <th>部门</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups %}
+                        <tr>
+                            <td>{{ group.id }}</td>
+                            <td>{{ group.name }}</td>
+                            <td>{{ group.department }}</td>
+                            <td>
+                                <div class="button-container">
+                                    <a href="{% url 'group_detail' pk=group.id %}" class="btn btn-primary">详情</a>
+                                    <a href="{% url 'assign_group_leader' pk=group.id %}" class="btn btn-primary">任命组长</a>
+                                    <a href="{% url 'delete_group' pk=group.id %}" class="btn btn-danger">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">没有符合筛选条件的小组</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}
