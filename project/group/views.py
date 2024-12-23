@@ -183,6 +183,8 @@ class AssignGroupLeaderView(UpdateView):
         if group.leader and group.leader != new_leader:
             # 将原组长的职位改为 "普通员工"
             group.leader.position = '普通员工'
+            group.leader.user.groups.remove(Group.objects.get(name='group_leader'))  # 移除员工组长角色
+            group.leader.user.groups.add(Group.objects.get(name='employee'))  # 添加普通员工角色
             group.leader.save()
 
         # 更新小组的组长
@@ -191,6 +193,8 @@ class AssignGroupLeaderView(UpdateView):
 
         # 更新新的组长的职位为 "员工组长"
         new_leader.position = '员工组长'
+        new_leader.user.groups.remove(Group.objects.get(name='employee'))  # 移除普通员工角色
+        new_leader.user.groups.add(Group.objects.get(name='group_leader'))  # 添加员工组长角色
         new_leader.save()
 
         # 重定向到小组列表页面
@@ -330,6 +334,8 @@ class DeleteGroupView(View):
         if group.leader:  # 假设每个小组都有一个 leader（组长）
             leader = group.leader
             leader.position = '普通员工'  # 将职位改为普通员工
+            leader.user.groups.remove(Group.objects.get(name='group_leader'))
+            leader.user.groups.add(Group.objects.get(name='employee'))
             leader.save()
         # 如果权限通过，删除小组
         

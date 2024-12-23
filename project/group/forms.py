@@ -80,8 +80,6 @@ class GroupForm(forms.ModelForm):
 
             except user.employee.DoesNotExist:
                 print("没有找到对应的员工信息")
-
-            
         
     def clean_members(self):
         members = self.cleaned_data.get('members')
