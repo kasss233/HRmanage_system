@@ -1,0 +1,234 @@
+/* 通用设置 */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* 页面头部样式 */
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 0;
+}
+
+header nav ul {
+    list-style-type: none;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+header nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+header nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+header nav ul li a:hover {
+    text-decoration: underline;
+}
+
+/* 页面内容部分 */
+main {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* 标题 */
+h1 {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table,
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    vertical-align: middle;
+    /* 垂直居中 */
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+/* 表单样式优化 */
+form {
+    width: 100%;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+form .form-group {
+    margin-bottom: 15px;
+}
+
+/* 只读表单字段样式 */
+form input[type="text"],
+form input[type="email"],
+form input[type="number"],
+form select,
+form textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    /* 让只读输入框看起来不同 */
+    color: #666;
+    /* 使只读内容显得更柔和 */
+}
+
+form input[type="text"]:disabled,
+form input[type="email"]:disabled,
+form input[type="number"]:disabled,
+form select:disabled,
+form textarea:disabled {
+    background-color: #e9ecef;
+    /* 让禁用的字段背景变为灰色 */
+    color: #6c757d;
+}
+
+/* 删除按钮样式 */
+form button[type="submit"] {
+    background-color: #dc3545;
+    /* 红色背景 */
+    color: white;
+    border: 1px solid #c82333;
+    /* 边框与背景色相似 */
+    padding: 12px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    /* 所有变化的平滑过渡 */
+}
+
+form button[type="submit"]:hover {
+    background-color: #c82333;
+    /* 悬停时颜色变深 */
+    border-color: #bd2130;
+    /* 边框颜色深化 */
+    transform: scale(1.05);
+    /* 放大按钮的效果 */
+}
+
+form button[type="submit"]:active {
+    background-color: #bd2130;
+    /* 按下时颜色更深 */
+    border-color: #9a1f25;
+    transform: scale(1);
+    /* 取消放大效果 */
+}
+
+/* 取消按钮样式 */
+form a.btn-cancel {
+    background-color: #6c757d;
+    /* 灰色背景 */
+    color: white;
+    padding: 12px 20px;
+    font-size: 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    display: inline-block;
+    transition: all 0.3s ease;
+    /* 所有变化的平滑过渡 */
+}
+
+form a.btn-cancel:hover {
+    background-color: #5a6268;
+    /* 悬停时颜色变深 */
+    border-color: #4e555b;
+    /* 边框颜色深化 */
+    transform: scale(1.05);
+    /* 放大按钮的效果 */
+}
+
+form a.btn-cancel:active {
+    background-color: #4e555b;
+    /* 按下时颜色更深 */
+    border-color: #3c4347;
+    transform: scale(1);
+    /* 取消放大效果 */
+}
+
+/* 新增按钮容器样式：让删除和取消按钮在同一行显示 */
+form .button-container {
+    display: flex;
+    justify-content: space-between;
+    /* 按钮之间均匀分布 */
+    gap: 10px;
+    /* 设置按钮之间的间距 */
+}
+
+/* 页脚样式 */
+footer {
+    text-align: center;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+    height: 50px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    main {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    header nav ul li {
+        display: block;
+        margin: 5px 0;
+    }
+
+    form label {
+        font-size: 12px;
+    }
+
+    form input[type="text"],
+    form input[type="email"],
+    form input[type="date"],
+    form input[type="number"],
+    form select,
+    form textarea {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    form button {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+}

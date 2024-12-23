@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <nav>
+        <ul>
+            
+            <li><a href="{% url 'logout' %}">登出</a></li>
+            <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
+            <li><a href="{% url 'sign' %}">签到签退</a></li>
+            <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
+            
+
+            {% if is_group_leader %}
+                <!-- 显示员工管理按钮 -->
+                <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+                <li><a href="{% url 'group_management' %}">小组管理</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block title %}员工信息{% endblock %}
+
+{% block content %}
+    <h1>我的信息</h1>
+
+    <div class="employee-info">
+        <table class="info-table">
+            <thead>
+                <tr>
+                    <th>字段</th>
+                    <th>信息</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>ID</strong></td>
+                    <td>{{ employee.id }}</td>
+                </tr>
+                <tr>
+                    <td><strong>姓名</strong></td>
+                    <td>{{ employee.name }}</td>
+                </tr>
+                <tr>
+                    <td><strong>性别</strong></td>
+                    <td>{{ employee.sex }}</td>
+                </tr>
+                <tr>
+                    <td><strong>生日</strong></td>
+                    <td>{{ employee.birthday }}</td>
+                </tr>
+                <tr>
+                    <td><strong>邮箱</strong></td>
+                    <td>{{ employee.email }}</td>
+                </tr>
+                <tr>
+                    <td><strong>电话</strong></td>
+                    <td>{{ employee.phone }}</td>
+                </tr>
+                <tr>
+                    <td><strong>地址</strong></td>
+                    <td>{{ employee.address }}</td>
+                </tr>
+                <tr>
+                    <td><strong>部门</strong></td>
+                    <td>{{ employee.department }}</td>
+                </tr>
+                <tr>
+                    <td><strong>职位</strong></td>
+                    <td>{{ employee.position }}</td>
+                </tr>
+                <tr>
+                    <td><strong>培训技能</strong></td>
+                    <td>{{ employee.details }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+<!-- 工资记录 --> 
+    <h2>工资记录</h2>
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>等级</th>
+                <th>奖金</th>
+                <th>总工资</th>
+                <th>支付状态</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for salary in salary_records %}
+                <tr>
+                    <td>{{ salary.id }}</td>
+                    <td>{{ salary.level }}</td>
+                    <td>{{ salary.bonus }}</td>
+                    <td>{{ salary.total_salary }}</td>
+                    <td>{{ salary.payment_status }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">没有工资记录</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div>
+        <li><a href="{% url 'standard_detail' %}">工资标准</a></li>
+    </div>
+    <style>
+        /* Employee Info Table */
+        .employee-info {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .info-table th, .info-table td {
+            padding: 12px 20px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .info-table th {
+            background-color: #f1f1f1;
+            color: #333;
+            font-weight: bold;
+            border: 1px solid #ccc;
+        }
+
+        .info-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .info-table td {
+            font-size: 14px;
+        }
+
+        .info-table td strong {
+            font-weight: 600;
+        }
+
+        h2 {
+            text-align: center; /* 标题居中 */
+            margin-top: 40px; /* 添加上边距，避免与前面的内容重叠 */
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .info-table th, .info-table td {
+                padding: 8px 10px;
+            }
+            .employee-info {
+                padding: 15px;
+            }
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Employee List{% endblock %}</title>
+    <!-- 引用外部CSS文件 -->
+    <link rel="stylesheet" href="{% static 'list.css' %}">
+</head>
+<body>
+
+    <!-- 页面头部 -->
+    <header>
+        {% block header %}
+        <nav>
+            <ul>
+                
+                <li><a href="{% url 'logout' %}">登出</a></li>
+                <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
+                <li><a href="{% url 'sign' %}">签到签退</a></li>
+                <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
+                <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+                <li><a href="{% url 'group_management' %}">小组管理</a></li>
+                
+            </ul>
+        </nav>
+        {% endblock %}
+    </header>
+
+    <!-- 页面内容部分 -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- 页面底部 -->
+    <footer>
+        <p>&copy; 大二也是二年级</p>
+    </footer>
+    
+</body>
+</html>

@@ -1,0 +1,24 @@
+{% extends 'base_delete.html' %}
+
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+    <h1>确认删除</h1>
+    <p>你确定要删除以下员工信息吗？</p>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- 使用表单渲染员工信息 -->
+        {{ form.as_table }}
+        
+        <!-- 新增的按钮容器 -->
+        <div class="button-container">
+            <!-- 删除按钮 -->
+            <button type="submit" class="btn btn-danger">删除</button>
+            
+            <!-- 取消按钮 -->
+            <a href="{% url 'employee_list' %}" class="btn btn-cancel">取消</a>
+        </div>
+    </form>
+{% endblock %}

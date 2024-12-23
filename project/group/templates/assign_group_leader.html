@@ -1,0 +1,32 @@
+{% extends 'base_update.html' %}
+
+{% block title %}任命组长{% endblock %}
+
+{% block content %}
+  <!-- 显示消息 -->
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <h1>为小组 {{ group.name }} 任命组长</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">任命组长</button>
+    </form>
+
+    {% if group.leader %}
+        <p>当前组长: {{ group.leader.name }} (ID: {{ group.leader.id }})</p>
+        <!-- 显示撤销组长的按钮 -->
+        <form method="POST" action="{% url 'revoke_leader' group.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">撤销组长</button>
+        </form>
+    {% else %}
+        <p>该小组没有组长。</p>
+    {% endif %}
+{% endblock %}

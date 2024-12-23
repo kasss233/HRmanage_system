@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}更新组员{% endblock %}
+
+{% block content %}
+    <h1>更新小组成员：{{ group.name }}</h1>
+
+    <form method="GET">
+        <label for="employee_id_filter">筛选员工 ID：</label>
+        <input type="number" name="employee_id_filter" id="employee_id_filter" min="1" placeholder="输入员工ID进行筛选">
+        <button type="submit">筛选 </button>
+    </form>
+
+    <form method="POST">
+        {% csrf_token %}
+        <h3>当前小组成员:</h3>
+        <ul>
+            {% for member in group.members.all %}
+                <li>
+                    {{ member.name }} (ID: {{ member.id }})
+                    <form method="POST" action="{% url 'remove_member' group.id member.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                onclick="return confirm('确定要移除该成员吗？')"
+                                style="border: 1px solid red; background-color: red; color: white; font-size: 12px; padding: 5px 10px; cursor: pointer; border-radius: 5px;">
+                            移除
+                        </button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h2>选择新成员:</h2>
+        {% if form.fields.members.queryset.exists %}
+            {{ form.as_p }}
+            
+            <button type="submit"style="border: 1px solid green; background-color: green; color: white; font-size: 12px; padding: 5px 10px; cursor: pointer; border-radius: 5px;">更新组员</button>
+                
+        {% else %}
+            <p style="color: red;">未找到该员工。</p>
+        {% endif %}
+    </form>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block header %}
+        <nav>
+            <ul>
+               
+                <li><a href="{% url 'logout' %}">登出</a></li>
+                <li><a href="{% url 'employee_frontpage' %}">个人信息</a></li>
+                <li><a href="{% url 'sign' %}">签到签退</a></li>
+                <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
+                {% if not is_employee %}
+                <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+                <li><a href="{% url 'group_management' %}">小组管理</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+{% endblock %}
+{% block content %}
+  <h2>员工签到签退</h2>
+
+  <div>
+    <p>当前时间：{{ current_time }}</p>
+    <p>当前员工：{{ employee.name }}</p>
+
+    <!-- 如果未签到 -->
+    {% if not is_signed_in %}
+      <form method="POST" action="{% url 'sign' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">签到</button>
+      </form>
+    {% else %}
+      <p>您已签到，当前时间：{{ sign_in_time }}</p>
+      
+      <!-- 如果已签到但未签退 -->
+      {% if not is_signed_out %}
+        <form method="POST" action="{% url 'sign' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">签退</button>
+        </form>
+      {% else %}
+        <p>您已签退，签退时间：{{ sign_out_time }}</p>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- 如果时间不在有效范围内，则弹出提示 -->
+  {% if is_out_of_range %}
+    <script type="text/javascript">
+      alert("当前时间不在签到或签退的有效范围内！");
+    </script>
+  {% endif %}
+
+{% endblock %}

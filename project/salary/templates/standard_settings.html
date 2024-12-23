@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置工资标准</title>
+    <link rel="stylesheet" href="{% static 'list.css' %}">
+    <style>
+        /* 自定义页面样式 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input[type="number"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            font-family: Arial, sans-serif;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .back-btn {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>设置工资标准</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="standard_no">标准编号：</label>
+        <input type="text" id="standard_no" name="standard_no" value="{{ standard.standard_no }}" required><br><br>
+
+        <label for="standard_name">标准名称：</label>
+        <input type="text" id="standard_name" name="standard_name" value="{{ standard.standard_name }}" required><br><br>
+
+        <label for="creator">创建人：</label>
+        <input type="text" id="creator" name="creator" value="{{ standard.creator }}" required><br><br>
+
+        <label for="creation_date">创建日期：</label>
+        <input type="date" id="creation_date" name="creation_date" value="{{ standard.creation_date }}" required><br><br>
+
+        <label for="basic_salary">基本工资：</label>
+        <input type="number" id="basic_salary" name="basic_salary" value="{{ standard.basic_salary }}" step="0.01" required><br><br>
+
+        <label for="late_deduction">迟到扣款：</label>
+        <input type="number" id="late_deduction" name="late_deduction" value="{{ standard.late_deduction }}" step="0.01"><br><br>
+
+        <label for="absence_deduction">缺勤扣款：</label>
+        <input type="number" id="absence_deduction" name="absence_deduction" value="{{ standard.absence_deduction }}" step="0.01"><br><br>
+
+        <label for="full_attendance_bonus">全勤奖金：</label>
+        <input type="number" id="full_attendance_bonus" name="full_attendance_bonus" value="{{ standard.full_attendance_bonus }}" step="0.01"><br><br>
+
+        <label for="standard_status">状态：</label>
+        <select id="standard_status" name="standard_status" required>
+            <option value="有效" {% if standard.standard_status == '有效' %}selected{% endif %}>有效</option>
+            <option value="无效" {% if standard.standard_status == '无效' %}selected{% endif %}>无效</option>
+        </select><br><br>
+
+        <button type="submit">保存</button>
+    </form>
+    <a href="javascript:history.back()" class="back-btn">返回</a>
+</body>
+</html>
