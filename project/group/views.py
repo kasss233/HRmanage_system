@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group as user_Group
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
@@ -183,8 +183,8 @@ class AssignGroupLeaderView(UpdateView):
         if group.leader and group.leader != new_leader:
             # 将原组长的职位改为 "普通员工"
             group.leader.position = '普通员工'
-            group.leader.user.groups.remove(Group.objects.get(name='group_leader'))  # 移除员工组长角色
-            group.leader.user.groups.add(Group.objects.get(name='employee'))  # 添加普通员工角色
+            group.leader.user.groups.remove(user_Group.objects.get(name='group_leader'))  # 移除员工组长角色
+            group.leader.user.groups.add(user_Group.objects.get(name='employee'))  # 添加普通员工角色
             group.leader.save()
 
         # 更新小组的组长
@@ -193,8 +193,9 @@ class AssignGroupLeaderView(UpdateView):
 
         # 更新新的组长的职位为 "员工组长"
         new_leader.position = '员工组长'
-        new_leader.user.groups.remove(Group.objects.get(name='employee'))  # 移除普通员工角色
-        new_leader.user.groups.add(Group.objects.get(name='group_leader'))  # 添加员工组长角色
+        if new_leader.user.groups.filter(name='employee').exists():
+            new_leader.user.groups.remove(user_Group.objects.get(name='employee'))  # 移除普通员工角色
+            new_leader.user.groups.add(user_Group.objects.get(name='group_leader'))  # 添加员工组长角色
         new_leader.save()
 
         # 重定向到小组列表页面
@@ -215,6 +216,8 @@ class RevokeGroupLeaderView(View):
 
             # 将原组长的职位设置为 "普通员工"
             old_leader.position = '普通员工'
+            old_leader.user.groups.remove(user_Group.objects.get(name='group_leader'))  # 移除员工组长角色
+            old_leader.user.groups.add(user_Group.objects.get(name='employee'))  # 添加普通员工角色
             old_leader.save()
 
             messages.success(request, f"成功撤销 {old_leader.name} 的组长职位！")
@@ -334,8 +337,8 @@ class DeleteGroupView(View):
         if group.leader:  # 假设每个小组都有一个 leader（组长）
             leader = group.leader
             leader.position = '普通员工'  # 将职位改为普通员工
-            leader.user.groups.remove(Group.objects.get(name='group_leader'))
-            leader.user.groups.add(Group.objects.get(name='employee'))
+            leader.user.groups.remove(user_Group.objects.get(name='group_leader'))
+            leader.user.groups.add(user_Group.objects.get(name='employee'))
             leader.save()
         # 如果权限通过，删除小组
         
