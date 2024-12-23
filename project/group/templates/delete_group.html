@@ -1,5 +1,5 @@
 <!-- templates/group/delete_group.html -->
-{% extends 'base.html' %}
+{% extends 'base_delete.html' %}
 
 {% block content %}
   <div class="container">
@@ -9,7 +9,7 @@
     <form method="POST" action="{% url 'delete_group' pk=group.id %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除该小组吗?')">确认删除</button>
-        <a href="{% url 'group_management' %}" class="btn btn-secondary">取消</a>
+        <a href="{% url 'group_management' %}" class="btn btn-cancel"style="display: block; text-align: center;">取消</a>
     </form>
   </div>
 {% endblock %}
