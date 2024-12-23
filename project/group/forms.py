@@ -80,13 +80,6 @@ class GroupForm(forms.ModelForm):
 
             except user.employee.DoesNotExist:
                 print("没有找到对应的员工信息")
-    def clean_name(self):
-            name = self.cleaned_data.get('name')
-        
-            # 判断小组名称是否已存在
-            if Group.objects.filter(name=name).exists():
-                raise ValidationError(f"小组名称 '{name}' 已经存在，请选择其他名称。") 
-            return name
         
     def clean_members(self):
         members = self.cleaned_data.get('members')
