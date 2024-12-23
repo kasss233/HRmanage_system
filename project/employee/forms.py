@@ -46,9 +46,12 @@ class EmployeeFilterForm(forms.Form):
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)
         if user.groups.filter(name='department_manager').exists():  # 判断是否为部门经理
-            self.fields['department'].disabled = True  # 禁用字段，不可编辑
+            current_department = user.employee.department 
+            self.fields['department'].choices = [(current_department, current_department)]
         elif user.groups.filter(name='group_leader').exists():
-            pass  
+            current_department = user.employee.department 
+            self.fields['department'].choices = [(current_department, current_department)] 
+            self.fields['group'].disabled = True
 
 class EmployeeForm(forms.ModelForm):
     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select)
