@@ -1,6 +1,6 @@
 from django.db import models
 from employee.models import employee
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.utils import timezone
 
 class Attendance(models.Model):
@@ -32,7 +32,8 @@ class Attendance(models.Model):
         # 如果是当天以后或其他日期的记录，计算迟到、早退和缺勤
         if self.is_sign_in and self.sign_in:
             # 处理签到时间是否迟到
-            work_start_time = self.date + timedelta(hours=9)  # 假设9点是规定的上班时间
+            work_start_time = datetime.combine(self.date, datetime.min.time()) + timedelta(hours=9)  # 假设9点是规定的上班时间
+            work_start_time = timezone.make_aware(work_start_time, timezone.get_current_timezone())
             if self.sign_in > work_start_time:
                 self.is_late = True
             else:
@@ -40,7 +41,8 @@ class Attendance(models.Model):
 
         if self.is_sign_out and self.sign_out:
             # 处理签退时间是否早退
-            work_end_time = self.date + timedelta(hours=17)  # 假设17点是规定的下班时间
+            work_end_time = datetime.combine(self.date, datetime.min.time()) + timedelta(hours=17)  # 假设17点是规定的下班时间
+            work_end_time = timezone.make_aware(work_end_time, timezone.get_current_timezone())
             if self.sign_out < work_end_time:
                 self.is_early = True
             else:
