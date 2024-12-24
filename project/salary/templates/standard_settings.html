@@ -86,7 +86,7 @@
     <h1>设置工资标准</h1>
     <form method="POST">
         {% csrf_token %}
-        <label for="standard_no">标准编号：</label>
+        <label for="standard_no">标准对应级别：</label>
         <input type="text" id="standard_no" name="standard_no" value="{{ standard.standard_no }}" required><br><br>
 
         <label for="standard_name">标准名称：</label>

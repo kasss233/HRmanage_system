@@ -53,6 +53,14 @@
                 {% endfor %}
                 <button type="submit" name="export" value="true" class="btn btn-export">导出数据</button>
             </form>
+            <!-- 添加发放工资按钮 -->
+           <form method="get" action="{% url 'employee_list' %}">
+                {% for key, value in request.GET.items %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
+                <button type="submit" name="pay_salaries" value="true" class="btn-pay-salary">发放工资</button>
+            </form>
+
         </div>
         <div class="employee-list">
             <table>
