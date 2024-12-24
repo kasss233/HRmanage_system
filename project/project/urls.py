@@ -20,12 +20,9 @@ urlpatterns = [
     path("sign",attendance.views.sign,name="sign"),
     path('employee/salary/<int:employee_id>/', salary.views.salary_detail, name='salary_detail'),
     path('standards/', salary.views.standard_detail, name='standard_detail'),
-<<<<<<< HEAD
     path('standard_settings/', salary.views.standard_settings, name='standard_settings'),  # 新建工资标准设置页面
     path('employee/<int:employee_id>/update_bonus/', employee.views.update_bonus, name='update_bonus'),
     path('standard_settings/<int:standard_id>/', salary.views.standard_settings, name='standard_settings_edit'),  # 编辑工资标准页面
-=======
->>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
     path('group/create/', group.views.CreateGroupView.as_view(), name='create_group'),
     path('group/<int:pk>/add_member/', group.views.AddMemberToGroupView.as_view(), name='add_member_to_group'),
     path('group/<int:pk>/assign_leader/', group.views.AssignGroupLeaderView.as_view(), name='assign_group_leader'),

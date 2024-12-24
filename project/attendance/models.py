@@ -1,6 +1,5 @@
 from django.db import models
 from employee.models import employee
-<<<<<<< HEAD
 from datetime import timedelta
 from django.utils import timezone
 
@@ -68,13 +67,3 @@ class Attendance(models.Model):
     def get_absent_count(cls, employee_id):
         """ 获取某个员工的缺勤次数，基于 employee_id """
         return cls.objects.filter(employee_id=employee_id, is_absent=True).count()
-=======
-class Attendance(models.Model):
-    employee = models.ForeignKey(employee, on_delete=models.CASCADE)
-    date=models.DateField(null=True)
-    sign_in=models.DateTimeField(null=True)
-    sign_out=models.DateTimeField(null=True)
-    is_sign_in=models.BooleanField(default=False)
-    is_sign_out=models.BooleanField(default=False)
-    remarks=models.TextField(null=True)
->>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
