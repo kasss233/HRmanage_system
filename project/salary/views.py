@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Salary, SalaryStandard
 from django.http import HttpResponse
+=======
+from django.shortcuts import render, get_object_or_404
+from .models import Salary, SalaryStandard
+
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
 # 查询员工工资
 def salary_detail(request, employee_id):
     salary = get_object_or_404(Salary, id=employee_id)
@@ -30,6 +36,7 @@ def standard_detail(request):
         'standards': standards
     }
     return render(request, 'standard_detail.html', context)
+<<<<<<< HEAD
 
 # 设置工资标准
 def standard_settings(request, standard_id=None):
@@ -60,3 +67,5 @@ def standard_settings(request, standard_id=None):
         'standard': standard
     }
     return render(request, 'standard_settings.html', context)
+=======
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220

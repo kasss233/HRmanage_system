@@ -19,7 +19,11 @@ DEPARTMENT_CHOICES = [
     ('法务部', '法务部'),
 ]
 class Group(models.Model):
+<<<<<<< HEAD
     name = models.CharField(max_length=100)  # 小组名称，如 'A组', 'B组'
+=======
+    name = models.CharField(max_length=100,unique=True)  # 小组名称，如 'A组', 'B组'
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
     department = models.CharField(max_length=100, null=True, blank=True)  # 小组所属部门
     members = models.ManyToManyField('employee.employee', related_name='groups', blank=True)  # 小组成员
     leader = models.ForeignKey(

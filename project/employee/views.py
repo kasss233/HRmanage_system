@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import decimal
 
+=======
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
@@ -130,6 +133,7 @@ class create_view(CreateView):
         print(f"用户 {username} 创建成功")
         print(f"员工 {employee.name} 的职位是 {employee.position}")
         # 将用户添加到 'employee' 组
+<<<<<<< HEAD
         level = 4
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
@@ -158,6 +162,21 @@ class create_view(CreateView):
             bonus=0.00,  # 默认奖金为 0
             total_salary=None  # 总工资将在后端计算
         )
+=======
+        if employee.position=='普通员工' or employee.position=='试用员工':
+            employee_group = Group.objects.get(name='employee')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='部门经理':
+            employee_group = Group.objects.get(name='department_manager')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='总经理':
+            employee_group = Group.objects.get(name='general_manager')
+            employee.user.groups.add(employee_group)
+        elif employee.position=='员工组长':
+            employee_group = Group.objects.get(name='group_leader')
+            employee.user.groups.add(employee_group)
+        
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
 
         return super().form_valid(form)
 
@@ -234,9 +253,35 @@ class frontpage_view(LoginRequiredMixin, DetailView):
 
         # 将数据传递到模板
         context['salary_records'] = salary_records
+<<<<<<< HEAD
         for salary in salary_records:
             salary.save()
         salary_records = Salary.objects.filter(id=id)
+=======
+        # 处理每条 Salary 记录，确保空值为0，并根据公式计算 total_salary
+        for salary in salary_records:
+            # 如果 total_salary 是 None 或者为空，计算它
+            if salary.total_salary is None:
+                # 如果 level 和 bonus 有值，计算 total_salary
+                bonus = salary.bonus if salary.bonus is not None else 0  # 将 bonus 为 None 的情况处理为 0
+                if salary.level is not None:
+                    try:
+                        # 获取对应的 SalaryStandard（假设 level 对应 SalaryStandard 的 id）
+                        salary_standard = SalaryStandard.objects.get(id=salary.level)
+                        basic_salary = salary_standard.basic_salary if salary_standard.basic_salary is not None else 0  # 将 basic_salary 为 None 的情况处理为 0
+                        # 计算 total_salary: basic_salary * level + bonus
+                        salary.total_salary = basic_salary + bonus
+                    except SalaryStandard.DoesNotExist:
+                        # 如果没有找到对应的 SalaryStandard，就设定 total_salary = bonus
+                        salary.total_salary = bonus
+                else:
+                    # 如果没有 level 信息，只计算奖金
+                    salary.total_salary = bonus
+
+            # 保存数据
+            salary.save()
+
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
         # 将处理后的 salary_records 传入上下文
         context['salary_records'] = salary_records
         # 检查用户是否为组长、部门经理、总经理
@@ -256,6 +301,7 @@ from .models import employee
 class EmployeeDetailView(DetailView):
     model = employee
     template_name = 'employee_detail.html'  # 创建新的模板
+<<<<<<< HEAD
     context_object_name = 'employee'  # 模板中使用 'employee' 来访问员工对象
 
 from django.shortcuts import render, redirect
@@ -287,3 +333,6 @@ def update_bonus(request, employee_id):
         return redirect('employee_detail', em.id)  # 更新后重定向到员工详情页
 
     return redirect('employee_list')  # 如果不是 POST 请求，返回员工列表
+=======
+    context_object_name = 'employee'  # 模板中使用 'employee' 来访问员工对象
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220

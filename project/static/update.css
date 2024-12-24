@@ -120,7 +120,10 @@ footer {
     bottom: 0;
     width: 100%;
     box-sizing: border-box;
+<<<<<<< HEAD
     height: 50px;
+=======
+>>>>>>> 29db69bdcee67c93b3434565e9ef4f2c3d1b0220
 }
 
 /* 基础样式，确保选择框和日期控件看起来一致 */
