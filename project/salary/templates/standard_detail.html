@@ -100,7 +100,7 @@
     {% if is_general_manager %}
     <button onclick="window.location.href='{% url 'standard_settings' %}'">设置工资标准</button> <!-- 设置按钮 -->
     {% endif %}
-    <button onclick="window.history.back()">返回</button>
+    <button onclick="window.location.href='{% url 'employee_frontpage' %}'">返回</button>
 </body>
 </html>
 
