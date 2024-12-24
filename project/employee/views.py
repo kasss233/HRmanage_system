@@ -43,7 +43,11 @@ class list_view(ListView):
         department = self.request.GET.get('department', '').strip()
         details = self.request.GET.get('details', '').strip()
         group=self.request.GET.get('group','').strip()
+        
         if user.groups.filter(name='department_manager').exists():
+            department = user.employee.department
+        elif user.groups.filter(name='group_leader').exists():
+            group = user.employee.group
             department = user.employee.department
         # 按照查询条件过滤
         if name:
@@ -57,7 +61,7 @@ class list_view(ListView):
         if details:
             queryset = queryset.filter(details__icontains=details)
         if group:
-            queryset=queryset.filter(group=group)
+            queryset = queryset.filter(group__name=group)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -67,6 +71,7 @@ class list_view(ListView):
         query_params.pop('page', None)  # 删除分页参数，但保留其他筛选参数
         # 传递 query_params 供模板分页器使用
         context['query_params'] = urlencode(query_params)
+        context['is_group_leader'] = self.request.user.groups.filter(name="group_leader").exists()
         return context
 
     def get(self, request, *args, **kwargs):
@@ -209,7 +214,7 @@ class delete_view(DeleteView):
         employee.delete()
         return redirect(self.success_url)
     
-@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
 class update_view(UpdateView):
     model = employee
     template_name = 'employee_update.html'  # 模板文件路径
@@ -229,6 +234,9 @@ class update_view(UpdateView):
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='group_leader'))
+            employee.user.groups.remove(Group.objects.get(name='department_manager'))
+            employee.user.groups.remove(Group.objects.get(name='general_manager'))
             if employee.position == '普通员工':
                 level = 4
             else:
@@ -236,14 +244,23 @@ class update_view(UpdateView):
         elif employee.position=='部门经理':
             employee_group = Group.objects.get(name='department_manager')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='group_leader'))
+            employee.user.groups.remove(Group.objects.get(name='employee'))
+            employee.user.groups.remove(Group.objects.get(name='general_manager'))
             level = 2
         elif employee.position=='总经理':
             employee_group = Group.objects.get(name='general_manager')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='group_leader'))
+            employee.user.groups.remove(Group.objects.get(name='department_manager'))
+            employee.user.groups.remove(Group.objects.get(name='employee'))
             level = 1
         elif employee.position=='员工组长':
             employee_group = Group.objects.get(name='group_leader')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='department_manager'))
+            employee.user.groups.remove(Group.objects.get(name='general_manager'))
+            employee.user.groups.remove(Group.objects.get(name='employee'))
             level = 3
         employee.save()
         try:
@@ -299,7 +316,7 @@ class frontpage_view(LoginRequiredMixin, DetailView):
 from django.shortcuts import render
 from django.views.generic import DetailView
 from .models import employee
-
+@method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
 class EmployeeDetailView(DetailView):
     model = employee
     template_name = 'employee_detail.html'  # 创建新的模板

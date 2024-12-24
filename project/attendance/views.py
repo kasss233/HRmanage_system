@@ -31,20 +31,29 @@ def list_view(request):
         start_date = form.cleaned_data.get('start_date')
         end_date = form.cleaned_data.get('end_date')
         department = form.cleaned_data.get('department')
+        group=form.cleaned_data.get('group')
         # 根据条件进行过滤
+        if request.user.groups.filter(name='employee').exists():  # 如果是员工用户
+            id=request.user.employee.id
+            name=request.user.employee.name
+        elif request.user.groups.filter(name='department_manager').exists():  # 如果是部门经理用户
+            department=request.user.employee.department
+        elif request.user.groups.filter(name='group_manager').exists():  # 如果是小组经理用户
+            group=request.user.employee.group.name
+            department=request.user.employee.department
+            
         if id:
             attendance_records = attendance_records.filter(employee__id__icontains=id)
         if name:
             attendance_records = attendance_records.filter(employee__name__icontains=name)
-        if employee:
-            attendance_records = attendance_records.filter(employee=employee)
         if start_date:
             attendance_records = attendance_records.filter(date__gte=start_date)
         if end_date:
             attendance_records = attendance_records.filter(date__lte=end_date)
         if department:
             attendance_records = attendance_records.filter(employee__department=department)
-        
+        if group:
+            attendance_records = attendance_records.filter(employee__group__name=group)
     # 分页逻辑
     attendance_records = attendance_records.order_by('-date')  # 排序可以调整为你需要的字段
     paginator = Paginator(attendance_records, 10)

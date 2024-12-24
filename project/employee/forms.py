@@ -33,7 +33,7 @@ class EmployeeFilterForm(forms.Form):
     name = forms.CharField(max_length=100, required=False, label='姓名')
     sex = forms.ChoiceField(choices=SEX_CHOICES, required=False, label='性别')
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES,required=False, label='部门')
-    group=forms.IntegerField(required=False,label='组')
+    group=forms.CharField(max_length=100,required=False,label='小组')
     birthday = forms.DateField(
         required=False,
         widget=forms.SelectDateWidget(years=range(1900, 2100)),
@@ -46,7 +46,8 @@ class EmployeeFilterForm(forms.Form):
         if user.groups.filter(name='department_manager').exists():  # 判断是否为部门经理
             self.fields['department'].disabled = True  # 禁用字段，不可编辑
         elif user.groups.filter(name='group_leader').exists():
-            pass  
+            self.fields['group'].disabled = True  # 禁用字段，不可编辑
+            self.fields['department'].disabled = True  # 禁用字段，不可编辑
 
 class EmployeeForm(forms.ModelForm):
     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select)
@@ -63,6 +64,13 @@ class EmployeeForm(forms.ModelForm):
             self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
             self.fields['department'].choices = [(current_department, current_department)]  # 更新 department 选择项
             new_position_choices = [choice for choice in POSITION_CHOICES if choice[0] not in ['部门经理', '总经理']]
+            self.fields['position'].choices = new_position_choices  # 更新 position 选择项
+        elif user.groups.filter(name='group_leader').exists():
+            employee_obj = employee.objects.get(user=user)
+            current_department = user.employee.department  # 获取当前部门
+            self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
+            self.fields['department'].choices = [(current_department, current_department)]  # 更新 department 选择项
+            new_position_choices = [choice for choice in POSITION_CHOICES if choice[0] not in ['部门经理', '总经理','员工组长']]
             self.fields['position'].choices = new_position_choices  # 更新 position 选择项
     class Meta:
         model = employee
