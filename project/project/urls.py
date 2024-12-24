@@ -21,6 +21,7 @@ urlpatterns = [
     path('employee/salary/<int:employee_id>/', salary.views.salary_detail, name='salary_detail'),
     path('standards/', salary.views.standard_detail, name='standard_detail'),
     path('standard_settings/', salary.views.standard_settings, name='standard_settings'),  # 新建工资标准设置页面
+    path('standards/update/<str:standard_no>/', salary.views.update_salary_standard, name='update_salary_standard'),
     path('employee/<int:employee_id>/update_bonus/', employee.views.update_bonus, name='update_bonus'),
     path('standard_settings/<int:standard_id>/', salary.views.standard_settings, name='standard_settings_edit'),  # 编辑工资标准页面
     path('group/create/', group.views.CreateGroupView.as_view(), name='create_group'),
