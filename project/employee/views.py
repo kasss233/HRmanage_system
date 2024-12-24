@@ -1,5 +1,5 @@
 import decimal
-
+from django.contrib import messages
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
@@ -25,7 +25,7 @@ from django.contrib.auth.hashers import make_password
 from django.views.generic import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseForbidden
 from urllib.parse import urlencode
 @method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
 class list_view(ListView):
@@ -67,11 +67,18 @@ class list_view(ListView):
         query_params.pop('page', None)  # 删除分页参数，但保留其他筛选参数
         # 传递 query_params 供模板分页器使用
         context['query_params'] = urlencode(query_params)
-        return context  
+        return context
+
     def get(self, request, *args, **kwargs):
         # 如果用户请求导出数据
         if 'export' in request.GET:
             return self.export_data()
+
+        # 如果用户请求发放工资
+        elif 'pay_salaries' in request.GET:
+            return self.pay_salaries()
+
+        # 默认返回父类的 GET 方法
         return super().get(request, *args, **kwargs)
 
     def export_data(self):
@@ -96,6 +103,27 @@ class list_view(ListView):
                 emp.details
             ])
         return response
+
+    def pay_salaries(self):
+        user = self.request.user
+        print("Hello")
+        # 验证用户是否有权限
+        if not user.groups.filter(name__in=['department_manager', 'general_manager', 'group_leader']).exists():
+            return HttpResponseForbidden("您没有权限执行此操作！")
+
+        # 获取所有符合条件的员工
+        employees = self.get_queryset()
+        print(employees)
+        # 批量更新工资状态
+        for emp in employees:
+            salary, created = Salary.objects.get_or_create(id=emp.id)
+            print(salary)
+            salary.payment_status = '已发'
+            salary.save()
+
+        # 重定向回员工列表页面，并显示成功信息
+        messages.success(self.request, f"成功发放 {employees.count()} 位员工的工资！")
+        return redirect('employee_list')
     
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class create_view(CreateView):
@@ -197,19 +225,38 @@ class update_view(UpdateView):
         return kwargs
     def form_valid(self, form):
         employee = form.save()
+        level=4
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
             employee.user.groups.add(employee_group)
+            if employee.position == '普通员工':
+                level = 4
+            else:
+                level = 5
         elif employee.position=='部门经理':
             employee_group = Group.objects.get(name='department_manager')
             employee.user.groups.add(employee_group)
+            level = 2
         elif employee.position=='总经理':
             employee_group = Group.objects.get(name='general_manager')
             employee.user.groups.add(employee_group)
+            level = 1
         elif employee.position=='员工组长':
             employee_group = Group.objects.get(name='group_leader')
             employee.user.groups.add(employee_group)
+            level = 3
         employee.save()
+        try:
+            salary = Salary.objects.get(id=employee.id)
+            salary.level = level
+            salary.save()
+        except Salary.DoesNotExist:
+            Salary.objects.create(
+                id=employee.id,
+                level=level,
+                bonus=0.00,
+                total_salary=None
+            )
         return super().form_valid(form)
     success_url = reverse_lazy('employee_list')  # 更新成功后重定向到列表视图
 
