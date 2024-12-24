@@ -23,7 +23,16 @@
 
 {% block content %}
     <h1>我的信息</h1>
-
+    <div>
+        <a href="{% url 'reset_password' %}" 
+           style="display: inline-block; color: #007bff; text-decoration: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; padding: 10px 15px; background-color: #e7f3ff; border-radius: 5px;">
+           修改密码
+        </a>
+            <a href="{% url 'standard_detail' %}" 
+               style="display: inline-block; color: #28a745; text-decoration: none; font-size: 16px; font-weight: bold; padding: 10px 15px; background-color: #e9f7ec; border-radius: 5px;">
+               工资标准
+           </a>
+    </div>
     <div class="employee-info">
         <table class="info-table">
             <thead>
@@ -104,9 +113,7 @@
             {% endfor %}
         </tbody>
     </table>
-    <div>
-        <li><a href="{% url 'standard_detail' %}">工资标准</a></li>
-    </div>
+    
     <style>
         /* Employee Info Table */
         .employee-info {

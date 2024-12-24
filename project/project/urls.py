@@ -32,5 +32,6 @@ urlpatterns = [
     path('group/<int:pk>/delete/', group.views.DeleteGroupView.as_view(), name='delete_group'),
     path('employee/<int:pk>/', employee.views.EmployeeDetailView.as_view(), name='employee_detail'),  # 新增详细信息页面
     path('group/<int:pk>/', group.views.GroupDetailView.as_view(), name='group_detail'),
+    path("reset_password/", accounts.views.reset_password, name="reset_password"),
 ]
 
