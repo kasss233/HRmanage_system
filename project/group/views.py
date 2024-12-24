@@ -103,57 +103,8 @@ class GroupDetailView(DetailView):
                 messages.error(request, "员工 ID 必须是一个有效的整数。")
         
         return redirect('group_detail', pk=group.id)  # 刷新页面，显示更新后的成员列表
-@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
-class AddMemberToGroupView(UpdateView):
-    model = Group
-    form_class = AddMemberForm
-    template_name = 'add_member_to_group.html'
-    success_url = reverse_lazy('group_management')  # 成功后跳转到小组列表页面
 
-    def post(self, request, group_id):
-        groups = get_object_or_404(Group, id=group_id)  # 获取小组对象
-        employee_id = request.POST.get('employee_id')
 
-        try:
-            member = employee.objects.get(id=employee_id)
-
-            # 判断该员工是否符合可添加条件
-            if member.department == groups.department and member.position in ['普通员工', '试用员工']:
-                if groups.members.count() < 4:  # 判断小组成员是否少于 4 人
-                    groups.members.add(member)
-                    # 更新员工的 group 字段为当前小组
-                    
-                    member.group = groups  # 更新员工的 group 字段为当前小组
-                    member.save()  # 保存员工信息
-                    messages.success(request, f"{member.name} 已成功添加到小组。")
-                else:
-                    messages.error(request, "小组成员已满，最多只能有 4 名成员。")
-            else:
-                messages.error(request, "该员工不符合添加条件。")
-
-        except employee.DoesNotExist:
-            messages.error(request, "未找到该员工。")
-
-        return redirect('group_detail', pk=groups.id)  # 跳转到小组详情页面
-@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')   
-class RemoveMemberFromGroupView(View):
-    def post(self, request, group_id, employee_id):
-        # 获取当前小组和员工
-        groups = get_object_or_404(Group, id=group_id)
-        member = get_object_or_404(employee, id=employee_id)
-
-        # 检查当前用户是否有权限删除该成员
-        if not groups.members.filter(id=member.id).exists():
-            return HttpResponseForbidden("您不能删除该成员。")
-
-        # 从小组中移除该成员
-        groups.members.remove(member)
-        member.group.remove(groups)  # 确保将员工加入到小组关联中
-        member.save()
-        if member.groups.count() == 0:
-                member.groups.clear()
-        # 重新定向到当前小组页面或其他相关页面
-        return redirect('group_detail', pk=groups.id)  # 跳转到小组详情页面
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class AssignGroupLeaderView(UpdateView):
     model = Group
@@ -339,7 +290,7 @@ class DeleteGroupView(View):
                 return redirect('group_management')
 
         # 如果是其他角色，允许删除任何小组
-        elif user.group.filter(name='general_manager').exists():
+        elif user.groups.filter(name='general_manager').exists():
             pass  # 总经理可以删除任何小组
 
         else:
@@ -355,10 +306,7 @@ class DeleteGroupView(View):
         # 如果权限通过，删除小组
         # 删除小组前，清空小组成员的 group
         for member in groups.members.all():  # 获取小组的所有成员
-            member.group.remove(groups)  # 将成员从小组移除
-            # 如果成员没有加入其他小组，清空其 groups 字段
-            if member.group.count() == 0:
-                member.group.clear()
+            member.group=None  # 将成员从小组移除
         groups.delete()
 
         # 提示删除成功
