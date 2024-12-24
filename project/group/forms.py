@@ -106,8 +106,19 @@ class AddMemberForm(forms.Form):
         # 限制成员只能选择符合条件的员工
         employees = employee.objects.filter(position__in=['普通员工', '试用员工']).exclude(groups=self.group)
         self.fields['employee_id'].queryset = employees
-        #将符合条件的员工填入ChoiceField的choices中
+        # 将符合条件的员工填入ChoiceField的choices中
         self.fields['employee_id'].choices = [(emp.id, f"{emp.name} (ID: {emp.id})") for emp in employees]
+
+    def clean_employee_id(self):
+        employee_id = self.cleaned_data.get('employee_id')
+        employees = employee.objects.get(id=employee_id)
+
+        # 检查员工是否已经属于任何小组
+        if employees.groups.exists():
+            raise ValidationError(f"员工 {employees.name} 已经是其他小组的成员，无法添加到当前小组。")
+        
+        # 如果通过验证，返回员工对象
+        return employee
             
 class AssignGroupLeaderForm(forms.ModelForm):
     class Meta:
