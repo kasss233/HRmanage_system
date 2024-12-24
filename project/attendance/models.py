@@ -11,6 +11,7 @@ class Attendance(models.Model):
     is_sign_in = models.BooleanField(default=False)
     is_sign_out = models.BooleanField(default=False)
     remarks = models.TextField(null=True)
+    valid = models.BooleanField(default=True)  # 添加 valid 字段
 
     is_late = models.BooleanField(default=False)  # 新增字段，保存是否迟到
     is_early = models.BooleanField(default=False)  # 新增字段，保存是否早退
@@ -22,8 +23,8 @@ class Attendance(models.Model):
         # 获取今天的日期
         today = timezone.now().date()
 
-        # 如果是当天的数据，不执行迟到、早退和缺勤的计算
-        if self.date == today:
+        # 如果是当天的数据或者无效，不执行迟到、早退和缺勤的计算
+        if self.date == today and self.valid==False:
             # 如果是当天的记录，跳过计算
             super().save(*args, **kwargs)
             return
@@ -56,14 +57,14 @@ class Attendance(models.Model):
     @classmethod
     def get_late_count(cls, employee_id):
         """ 获取某个员工的迟到次数，基于 employee_id """
-        return cls.objects.filter(employee_id=employee_id, is_late=True).count()
+        return cls.objects.filter(employee_id=employee_id, is_late=True, valid=True).count()
 
     @classmethod
     def get_early_count(cls, employee_id):
         """ 获取某个员工的早退次数，基于 employee_id """
-        return cls.objects.filter(employee_id=employee_id, is_early=True).count()
+        return cls.objects.filter(employee_id=employee_id, is_early=True, valid=True).count()
 
     @classmethod
     def get_absent_count(cls, employee_id):
         """ 获取某个员工的缺勤次数，基于 employee_id """
-        return cls.objects.filter(employee_id=employee_id, is_absent=True).count()
+        return cls.objects.filter(employee_id=employee_id, is_absent=True, valid=True).count()

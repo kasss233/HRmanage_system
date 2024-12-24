@@ -27,12 +27,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv
 from django.http import HttpResponse,HttpResponseForbidden
 from urllib.parse import urlencode
+from attendance.models import Attendance
 @method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
 class list_view(ListView):
     model = employee
     template_name = 'employee_list.html'
     context_object_name = 'employees'
     paginate_by = 10  # 每页显示10条记录
+
     def get_queryset(self):
         queryset = employee.objects.all()
         user = self.request.user
@@ -65,6 +67,7 @@ class list_view(ListView):
         return queryset
 
     def get_context_data(self, **kwargs):
+        is_general_manager = self.request.user.groups.filter(name='general_manager').exists()
         context = super().get_context_data(**kwargs)
         context['form'] = EmployeeFilterForm(self.request.GET, user=self.request.user)
         query_params = self.request.GET.dict()
@@ -72,6 +75,7 @@ class list_view(ListView):
         # 传递 query_params 供模板分页器使用
         context['query_params'] = urlencode(query_params)
         context['is_group_leader'] = self.request.user.groups.filter(name="group_leader").exists()
+        context['is_general_manager'] = is_general_manager
         return context
 
     def get(self, request, *args, **kwargs):
@@ -82,6 +86,8 @@ class list_view(ListView):
         # 如果用户请求发放工资
         elif 'pay_salaries' in request.GET:
             return self.pay_salaries()
+        elif 'reset_salary_status' in request.GET:
+            return self.reset_salary_status()
 
         # 默认返回父类的 GET 方法
         return super().get(request, *args, **kwargs)
@@ -111,14 +117,14 @@ class list_view(ListView):
 
     def pay_salaries(self):
         user = self.request.user
-        print("Hello")
+        #print("Hello")
         # 验证用户是否有权限
-        if not user.groups.filter(name__in=['department_manager', 'general_manager', 'group_leader']).exists():
+        if not user.groups.filter(name='general_manager').exists():
             return HttpResponseForbidden("您没有权限执行此操作！")
 
         # 获取所有符合条件的员工
         employees = self.get_queryset()
-        print(employees)
+        # print(employees)
         # 批量更新工资状态
         for emp in employees:
             salary, created = Salary.objects.get_or_create(id=emp.id)
@@ -128,6 +134,26 @@ class list_view(ListView):
 
         # 重定向回员工列表页面，并显示成功信息
         messages.success(self.request, f"成功发放 {employees.count()} 位员工的工资！")
+        return redirect('employee_list')
+
+    def reset_salary_status(self):
+        user = self.request.user
+        # 验证用户是否是 'general_manager' 组成员
+        if not user.groups.filter(name='general_manager').exists():
+            return HttpResponseForbidden("您没有权限执行此操作！")
+
+        # 获取所有符合条件的员工（可以根据你的需求进行筛选）
+        employees = self.get_queryset()
+
+        # 批量重置工资状态
+        for emp in employees:
+            salary, created = Salary.objects.get_or_create(id=emp.id)
+            salary.payment_status = '未发'  # 假设 '未发' 是工资状态的初始状态
+            salary.bonus = 0
+            salary.save()
+        Attendance.objects.update(valid=0)
+        # 重定向回员工列表页面，并显示成功信息
+        messages.success(self.request, f"成功重置 {employees.count()} 位员工的工资状态！")
         return redirect('employee_list')
     
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')

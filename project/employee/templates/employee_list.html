@@ -53,12 +53,21 @@
                     {% endfor %}
                     <button type="submit" name="export" value="true" class="btn btn-export">导出数据</button>
                 </form>
-                <form method="get" action="{% url 'employee_list' %}">
-                    {% for key, value in request.GET.items %}
-                        <input type="hidden" name="{{ key }}" value="{{ value }}">
-                    {% endfor %}
-                    <button type="submit" name="pay_salaries" value="true" class="btn-pay-salary">发放工资</button>
-                </form>
+                <!-- 只有 general_manager 才能看到这个按钮 -->
+                {% if is_general_manager %}
+                    <form method="get" action="{% url 'employee_list' %}">
+                        {% for key, value in request.GET.items %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                        <button type="submit" name="pay_salaries" value="true" class="btn-pay-salary">发放工资</button>
+                    </form>
+                    <form method="get" action="{% url 'employee_list' %}">
+                        {% for key, value in request.GET.items %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                        <button type="submit" name="reset_salary_status" value="true" class="btn-reset-salary">重置工资</button>
+                    </form>
+                {% endif %}
             
         </div>
         <div class="employee-list">
