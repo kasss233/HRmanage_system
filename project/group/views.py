@@ -51,14 +51,15 @@ class GroupDetailView(DetailView):
             context['leader_id'] = None
             
        # 获取可以添加的成员：属于当前小组部门且为普通员工或试用员工
-        # 首先，检查小组是否有部门，防止获取 `None` 的部门
+        # 获取可以添加的成员：属于当前小组部门且为普通员工或试用员工，且未加入任何小组
         if group.department:
             available_employees = employee.objects.filter(
                 position__in=['普通员工', '试用员工'],
-                department=group.department
-            ).exclude(groups=group)  # 排除当前小组成员
+                department=group.department,
+                group__isnull=True  # 确保该员工不属于任何小组
+            )
         else:
-            available_employees = employee.objects.none()  # 如果没有部门，返回空的查询集
+            available_employees = employee.objects.none()  # 如果没有部门，返回空查询集
         
         # 如果传递了员工ID进行过滤
         employee_id_filter = self.request.GET.get('employee_id_filter', None)
@@ -77,6 +78,8 @@ class GroupDetailView(DetailView):
                 employees = employee.objects.get(id=employee_id)
                 if group.members.count() < 4:  # 判断小组成员是否少于 4
                     group.members.add(employees)
+                    employees.group = group  # 更新员工的小组
+                    employees.save()  # 保存员工信息
                     messages.success(request, f"{employees.name} 已成功添加到小组。")
                 else:
                     messages.error(request, "小组成员已满，最多只能有 4 名成员。")
@@ -91,6 +94,8 @@ class GroupDetailView(DetailView):
                     messages.error(request, "小组组长不能被删除。")
                 else:
                     group.members.remove(employee_to_remove)
+                    employee_to_remove.group = None  # 将员工移出当前小组
+                    employee_to_remove.save()  # 保存员工信息
                     messages.success(request, f"{employee_to_remove.name} 已从小组中移除。")
             except employee.DoesNotExist:
                 messages.error(request, "未找到该员工。")
@@ -98,50 +103,8 @@ class GroupDetailView(DetailView):
                 messages.error(request, "员工 ID 必须是一个有效的整数。")
         
         return redirect('group_detail', pk=group.id)  # 刷新页面，显示更新后的成员列表
-@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
-class AddMemberToGroupView(UpdateView):
-    model = Group
-    form_class = AddMemberForm
-    template_name = 'add_member_to_group.html'
-    success_url = reverse_lazy('group_management')  # 成功后跳转到小组列表页面
 
-    def post(self, request, group_id):
-        group = Group.objects.get(id=group_id)
-        employee_id = request.POST.get('employee_id')
 
-        try:
-            member = employee.objects.get(id=employee_id)
-
-            # 判断该员工是否符合可添加条件
-            if member.department == group.department and member.position in ['普通员工', '试用员工']:
-                if group.members.count() < 4:  # 判断小组成员是否少于 4 人
-                    group.members.add(member)
-                    messages.success(request, f"{member.name} 已成功添加到小组。")
-                else:
-                    messages.error(request, "小组成员已满，最多只能有 4 名成员。")
-            else:
-                messages.error(request, "该员工不符合添加条件。")
-
-        except employee.DoesNotExist:
-            messages.error(request, "未找到该员工。")
-
-        return redirect('group_detail', pk=group.id)  # 跳转到小组详情页面
-@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')   
-class RemoveMemberFromGroupView(View):
-    def post(self, request, group_id, employee_id):
-        # 获取当前小组和员工
-        group = get_object_or_404(Group, id=group_id)
-        member = get_object_or_404(employee, id=employee_id)
-
-        # 检查当前用户是否有权限删除该成员
-        if not group.members.filter(id=member.id).exists():
-            return HttpResponseForbidden("您不能删除该成员。")
-
-        # 从小组中移除该成员
-        group.members.remove(member)
-
-        # 重新定向到当前小组页面或其他相关页面
-        return redirect('group_detail', pk=group.id)  # 跳转到小组详情页面
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class AssignGroupLeaderView(UpdateView):
     model = Group
@@ -304,7 +267,7 @@ class DeleteGroupView(View):
         group = get_object_or_404(Group, pk=pk)
         return render(request, 'delete_group.html', {'group': group})
     def post(self, request, pk):
-        group = get_object_or_404(Group, pk=pk)
+        groups = get_object_or_404(Group, pk=pk)
         
 
         # 获取当前用户
@@ -314,7 +277,7 @@ class DeleteGroupView(View):
         if user.groups.filter(name='department_manager').exists():
             # 获取部门经理所属的员工
             employees = get_object_or_404(employee, user=user)
-            if group.department != employees.department:
+            if groups.department != employees.department:
                 messages.error(request, "您只能删除自己部门的小组！")
                 return redirect('group_management')
 
@@ -322,7 +285,7 @@ class DeleteGroupView(View):
         elif user.groups.filter(name='group_leader').exists():
             # 获取员工组长的小组
             employees = get_object_or_404(employee, user=user)
-            if group not in employee.groups.all():
+            if groups not in employee.group.all():
                 messages.error(request, "您只能删除您所在的小组！")
                 return redirect('group_management')
 
@@ -334,16 +297,18 @@ class DeleteGroupView(View):
             messages.error(request, "您没有权限删除小组！")
             return redirect('group_management')
      # 在删除小组之前，将组长的职位改为普通员工
-        if group.leader:  # 假设每个小组都有一个 leader（组长）
-            leader = group.leader
+        if groups.leader:  # 假设每个小组都有一个 leader（组长）
+            leader = groups.leader
             leader.position = '普通员工'  # 将职位改为普通员工
             leader.user.groups.remove(user_Group.objects.get(name='group_leader'))
             leader.user.groups.add(user_Group.objects.get(name='employee'))
             leader.save()
         # 如果权限通过，删除小组
-        
-        group.delete()
+        # 删除小组前，清空小组成员的 group
+        for member in groups.members.all():  # 获取小组的所有成员
+            member.group=None  # 将成员从小组移除
+        groups.delete()
 
         # 提示删除成功
-        messages.success(request, f"小组 '{group.name}' 删除成功！")
+        messages.success(request, f"小组 '{groups.name}' 删除成功！")
         return redirect('group_management')

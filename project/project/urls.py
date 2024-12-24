@@ -25,14 +25,12 @@ urlpatterns = [
     path('employee/<int:employee_id>/update_bonus/', employee.views.update_bonus, name='update_bonus'),
     path('standard_settings/<int:standard_id>/', salary.views.standard_settings, name='standard_settings_edit'),  # 编辑工资标准页面
     path('group/create/', group.views.CreateGroupView.as_view(), name='create_group'),
-    path('group/<int:pk>/add_member/', group.views.AddMemberToGroupView.as_view(), name='add_member_to_group'),
     path('group/<int:pk>/assign_leader/', group.views.AssignGroupLeaderView.as_view(), name='assign_group_leader'),
     path('attendance/update/<int:pk>/', attendance.views.AttendanceUpdateView.as_view(), name='attendance_update'),
     path('group-management/', group.views.GroupManagementView.as_view(), name='group_management'),
     path('group/<int:group_id>/revoke_leader/', group.views.RevokeGroupLeaderView.as_view(), name='revoke_leader'),  # 添加撤销组长的 URL 路由
     path('group/<int:pk>/delete/', group.views.DeleteGroupView.as_view(), name='delete_group'),
     path('employee/<int:pk>/', employee.views.EmployeeDetailView.as_view(), name='employee_detail'),  # 新增详细信息页面
-    path('group/<int:group_id>/remove_member/<int:employee_id>/', group.views.RemoveMemberFromGroupView.as_view(), name='remove_member'),
     path('group/<int:pk>/', group.views.GroupDetailView.as_view(), name='group_detail'),
 ]
 
