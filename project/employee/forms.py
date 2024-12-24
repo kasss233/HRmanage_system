@@ -33,7 +33,7 @@ class EmployeeFilterForm(forms.Form):
     name = forms.CharField(max_length=100, required=False, label='姓名')
     sex = forms.ChoiceField(choices=SEX_CHOICES, required=False, label='性别')
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES,required=False, label='部门')
-    group=forms.CharField(max_length=100, required=False, label='组')
+    group=forms.IntegerField(required=False,label='组')
     birthday = forms.DateField(
         required=False,
         widget=forms.SelectDateWidget(years=range(1900, 2100)),
