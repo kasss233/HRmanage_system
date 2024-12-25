@@ -241,7 +241,7 @@ class GroupManagementView(TemplateView):
         # 获取筛选表单并进行过滤
         form = GroupFilterForm(request.GET, user=request.user)  # 提供当前用户信息
         groups = Group.objects.all()  # 默认获取所有小组
-        
+        is_group_leader=self.request.user.groups.filter(name='group_leader').exists()
         if form.is_valid():
             # 根据表单字段进行筛选
             group_id = form.cleaned_data.get('id')
@@ -262,7 +262,8 @@ class GroupManagementView(TemplateView):
         # 将筛选结果传递给模板
         context = {
             'form': form,
-            'groups': groups
+            'groups': groups,
+            'is_group_leader':is_group_leader
         }
         return self.render_to_response(context)
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')

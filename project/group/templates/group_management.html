@@ -28,6 +28,7 @@
             </form>
         </div>
         <!-- 小组列表表格部分 -->
+        {%if not is_group_leader%}
         <div class="button-container">
             <a href="{% url 'create_group' %}" class="btn btn-primary">添加</a>
             <form method="get" action="{% url 'group_management' %}">
@@ -37,6 +38,7 @@
                 {% endfor %}
             </form>
         </div>
+        {%endif%}
         <!-- 小组列表表格部分 -->
         <div class="employee-list">
             <table>
@@ -57,8 +59,10 @@
                             <td>
                                 <div class="button-container">
                                     <a href="{% url 'group_detail' pk=group.id %}" class="btn btn-primary">详情</a>
+                                    {%if not is_group_leader%}
                                     <a href="{% url 'assign_group_leader' pk=group.id %}" class="btn btn-primary">任命</a>
                                     <a href="{% url 'delete_group' pk=group.id %}" class="btn btn-danger">删除</a>
+                                    {%endif%}
                                 </div>
                             </td>
                         </tr>
