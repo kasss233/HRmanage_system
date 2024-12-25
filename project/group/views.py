@@ -248,7 +248,7 @@ class GroupManagementView(TemplateView):
             group_name = form.cleaned_data.get('name')
             department = form.cleaned_data.get('department')
             # 如果当前用户已经属于某个小组，限制只显示该小组
-            if request.user.employee.group.id:  # 如果当前用户有小组
+            if is_group_leader and request.user.employee.group.id:  # 如果当前用户有小组
                 groups = groups.filter(id=request.user.employee.group.id)  # 只显示当前用户所在的小组
             else:
                 # 如果用户没有小组，进行正常筛选
