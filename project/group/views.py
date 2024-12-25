@@ -247,13 +247,17 @@ class GroupManagementView(TemplateView):
             group_id = form.cleaned_data.get('id')
             group_name = form.cleaned_data.get('name')
             department = form.cleaned_data.get('department')
-
-            if group_id:
-                groups = groups.filter(id=group_id)
-            if group_name:
-                groups = groups.filter(name__icontains=group_name)
-            if department:
-                groups = groups.filter(department=department)
+            # 如果当前用户已经属于某个小组，限制只显示该小组
+            if request.user.employee.group.id:  # 如果当前用户有小组
+                groups = groups.filter(id=request.user.employee.group.id)  # 只显示当前用户所在的小组
+            else:
+                # 如果用户没有小组，进行正常筛选
+                if group_id:
+                    groups = groups.filter(id=group_id)
+                if group_name:
+                    groups = groups.filter(name__icontains=group_name)
+                if department:
+                    groups = groups.filter(department=department)
 
         # 将筛选结果传递给模板
         context = {
