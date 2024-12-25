@@ -50,11 +50,16 @@ class EmployeeFilterForm(forms.Form):
             self.fields['department'].disabled = True  # 禁用字段，不可编辑
 
 class EmployeeForm(forms.ModelForm):
-    sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select)
-    birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2100)))
-    position = forms.ChoiceField(choices=POSITION_CHOICES, widget=forms.Select)
-    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select)
-    details=forms.CharField(widget=forms.Textarea,required=False)
+    id=forms.IntegerField(widget=forms.HiddenInput(),required=False,label='员工ID')
+    name=forms.CharField(max_length=100,label='姓名')
+    sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select,label='性别')
+    birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2100)),label='出生日期')
+    email = forms.EmailField(label='邮箱')
+    phone = forms.CharField(max_length=11, label='电话')
+    address = forms.CharField(max_length=100, label='地址')
+    position = forms.ChoiceField(choices=POSITION_CHOICES, widget=forms.Select,label='职位')
+    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select,label='部门')
+    details=forms.CharField(widget=forms.Textarea,required=False,label='培训技能')
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # 获取当前用户
         super().__init__(*args, **kwargs)
