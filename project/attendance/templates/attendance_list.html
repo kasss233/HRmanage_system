@@ -11,6 +11,7 @@
                 <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
                 {% if not is_employee %}
                 <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+                <li><a href="{% url 'group_management' %}">小组管理</a></li>
                 {% endif %}
             </ul>
         </nav>

@@ -10,6 +10,7 @@
                 <li><a href="{% url 'sign' %}">签到签退</a></li>
                 <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
                 <li><a href="{% url 'employee_list' %}">员工管理</a></li>
+                <li><a href="{% url 'group_management' %}">小组管理</a></li>
             </ul>
         </nav>
         {% endblock %}
@@ -42,16 +43,31 @@
             {% endif %}
         </div>
 
-        <!-- 员工列表表格部分 -->
         <div class="button-container">
-            <a href="{% url 'employee_create'%}" class="btn btn-primary">添加</a>
-            <form method="get" action="{% url 'employee_list' %}">
-                <!-- 保留当前筛选条件 -->
-                {% for key, value in request.GET.items %}
-                    <input type="hidden" name="{{ key }}" value="{{ value }}">
-                {% endfor %}
-                <button type="submit" name="export" value="true" class="btn btn-export">导出数据</button>
-            </form>
+            {% if not is_group_leader %}
+                <a href="{% url 'employee_create' %}" class="btn btn-primary">添加</a>
+            {% endif %}
+                <form method="get" action="{% url 'employee_list' %}">
+                    {% for key, value in request.GET.items %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endfor %}
+                    <button type="submit" name="export" value="true" class="btn btn-export">导出数据</button>
+                </form>
+                <!-- 只有 general_manager 才能看到这个按钮 -->
+                {% if is_general_manager %}
+                    <form method="get" action="{% url 'employee_list' %}">
+                        {% for key, value in request.GET.items %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                        <button type="submit" name="pay_salaries" value="true" class="btn-pay-salary">发放工资</button>
+                    </form>
+                    <form method="get" action="{% url 'employee_list' %}">
+                        {% for key, value in request.GET.items %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                        <button type="submit" name="reset_salary_status" value="true" class="btn-reset-salary">重置工资</button>
+                    </form>
+                {% endif %}
         </div>
         <div class="employee-list">
             <table>
@@ -66,6 +82,7 @@
                         <th>地址</th>
                         <th>部门</th>
                         <th>职位</th>
+                        <th>组名</th>
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -81,14 +98,18 @@
                             <td>{{ emp.address }}</td>
                             <td>{{ emp.department }}</td>
                             <td>{{ emp.position }}</td>
+                            <td>{{ emp.group.name }}</td>
                             
                             <td>
                                 <div class="button-container">
-                                    <!-- 更新按钮 -->
+                                    <!-- 详细和更新按钮始终显示 -->
+                                    <a href="{% url 'employee_detail' emp.id %}" class="btn btn-primary">详细</a>
                                     <a href="{% url 'employee_update' emp.pk %}" class="btn btn-primary">更新</a>
-                                    
-                                    <!-- 删除按钮 -->
-                                    <a href="{% url 'employee_delete' emp.pk %}" class="btn btn-danger">删除</a>
+                            
+                                    <!-- 删除按钮仅当用户不是 group_leader 时显示 -->
+                                    {% if not is_group_leader %}
+                                        <a href="{% url 'employee_delete' emp.pk %}" class="btn btn-danger">删除</a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

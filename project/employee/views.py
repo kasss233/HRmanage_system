@@ -1,3 +1,5 @@
+import decimal
+from django.contrib import messages
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
@@ -23,14 +25,16 @@ from django.contrib.auth.hashers import make_password
 from django.views.generic import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseForbidden
 from urllib.parse import urlencode
+from attendance.models import Attendance
 @method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
 class list_view(ListView):
     model = employee
     template_name = 'employee_list.html'
     context_object_name = 'employees'
     paginate_by = 10  # 每页显示10条记录
+
     def get_queryset(self):
         queryset = employee.objects.all()
         user = self.request.user
@@ -39,7 +43,13 @@ class list_view(ListView):
         sex = self.request.GET.get('sex', '').strip()
         birthday = self.request.GET.get('birthday', '').strip()
         department = self.request.GET.get('department', '').strip()
+        details = self.request.GET.get('details', '').strip()
+        group=self.request.GET.get('group','').strip()
+        
         if user.groups.filter(name='department_manager').exists():
+            department = user.employee.department
+        elif user.groups.filter(name='group_leader').exists():
+            group = user.employee.group
             department = user.employee.department
         # 按照查询条件过滤
         if name:
@@ -50,25 +60,36 @@ class list_view(ListView):
             queryset = queryset.filter(birthday=birthday)
         if department:
             queryset = queryset.filter(department=department)
-
+        if details:
+            queryset = queryset.filter(details__icontains=details)
+        if group:
+            queryset = queryset.filter(group__name=group)
         return queryset
 
     def get_context_data(self, **kwargs):
+        is_general_manager = self.request.user.groups.filter(name='general_manager').exists()
         context = super().get_context_data(**kwargs)
-
-        # 将当前用户传递给表单
         context['form'] = EmployeeFilterForm(self.request.GET, user=self.request.user)
-
-         # 获取查询参数并排除空值
         query_params = self.request.GET.dict()
         query_params.pop('page', None)  # 删除分页参数，但保留其他筛选参数
         # 传递 query_params 供模板分页器使用
         context['query_params'] = urlencode(query_params)
-        return context  
+        context['is_group_leader'] = self.request.user.groups.filter(name="group_leader").exists()
+        context['is_general_manager'] = is_general_manager
+        return context
+
     def get(self, request, *args, **kwargs):
         # 如果用户请求导出数据
         if 'export' in request.GET:
             return self.export_data()
+
+        # 如果用户请求发放工资
+        elif 'pay_salaries' in request.GET:
+            return self.pay_salaries()
+        elif 'reset_salary_status' in request.GET:
+            return self.reset_salary_status()
+
+        # 默认返回父类的 GET 方法
         return super().get(request, *args, **kwargs)
 
     def export_data(self):
@@ -78,7 +99,7 @@ class list_view(ListView):
         response.charset = 'GBK'
         # 写入 CSV 文件内容
         writer = csv.writer(response)
-        writer.writerow(['ID', '姓名', '性别', '生日', '邮箱', '电话', '地址', '部门', '职位'])  # 表头
+        writer.writerow(['ID', '姓名', '性别', '生日', '邮箱', '电话', '地址', '部门', '职位','技能'])  # 表头
         for emp in queryset:
             writer.writerow([
                 emp.id,
@@ -90,8 +111,50 @@ class list_view(ListView):
                 emp.address,
                 emp.department,
                 emp.position,
+                emp.details
             ])
         return response
+
+    def pay_salaries(self):
+        user = self.request.user
+        #print("Hello")
+        # 验证用户是否有权限
+        if not user.groups.filter(name='general_manager').exists():
+            return HttpResponseForbidden("您没有权限执行此操作！")
+
+        # 获取所有符合条件的员工
+        employees = self.get_queryset()
+        # print(employees)
+        # 批量更新工资状态
+        for emp in employees:
+            salary, created = Salary.objects.get_or_create(id=emp.id)
+            print(salary)
+            salary.payment_status = '已发'
+            salary.save()
+
+        # 重定向回员工列表页面，并显示成功信息
+        messages.success(self.request, f"成功发放 {employees.count()} 位员工的工资！")
+        return redirect('employee_list')
+
+    def reset_salary_status(self):
+        user = self.request.user
+        # 验证用户是否是 'general_manager' 组成员
+        if not user.groups.filter(name='general_manager').exists():
+            return HttpResponseForbidden("您没有权限执行此操作！")
+
+        # 获取所有符合条件的员工（可以根据你的需求进行筛选）
+        employees = self.get_queryset()
+
+        # 批量重置工资状态
+        for emp in employees:
+            salary, created = Salary.objects.get_or_create(id=emp.id)
+            salary.payment_status = '未发'  # 假设 '未发' 是工资状态的初始状态
+            salary.bonus = 0
+            salary.save()
+        Attendance.objects.update(valid=0)
+        # 重定向回员工列表页面，并显示成功信息
+        messages.success(self.request, f"成功重置 {employees.count()} 位员工的工资状态！")
+        return redirect('employee_list')
     
 @method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
 class create_view(CreateView):
@@ -101,8 +164,13 @@ class create_view(CreateView):
     success_url = reverse_lazy('employee_list')  # 保存成功后重定向到列表视图
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = EmployeeForm(self.request.GET, user=self.request.user)
         return context
+
+    def get_form_kwargs(self):
+        # 获取表单的初始参数
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # 将当前用户传递给表单
+        return kwargs
     def form_valid(self, form):
         # 首先保存员工对象
         employee = form.save()
@@ -118,20 +186,37 @@ class create_view(CreateView):
         )
         employee.user = user
         employee.save()
+        print(f"用户 {username} 创建成功")
+        print(f"员工 {employee.name} 的职位是 {employee.position}")
         # 将用户添加到 'employee' 组
+        level = 4
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
             employee.user.groups.add(employee_group)
+            if employee.position == '普通员工':
+                level = 4
+            else:
+                level = 5
         elif employee.position=='部门经理':
             employee_group = Group.objects.get(name='department_manager')
             employee.user.groups.add(employee_group)
+            level = 2
         elif employee.position=='总经理':
             employee_group = Group.objects.get(name='general_manager')
             employee.user.groups.add(employee_group)
+            level = 1
         elif employee.position=='员工组长':
             employee_group = Group.objects.get(name='group_leader')
             employee.user.groups.add(employee_group)
-        
+            level = 4
+        # 创建 Salary 记录并保存
+
+        Salary.objects.create(
+            id=employee.id,
+            level=level,
+            bonus=0.00,  # 默认奖金为 0
+            total_salary=None  # 总工资将在后端计算
+        )
 
         return super().form_valid(form)
 
@@ -155,7 +240,7 @@ class delete_view(DeleteView):
         employee.delete()
         return redirect(self.success_url)
     
-@method_decorator(group_required('department_manager', 'general_manager'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager','group_leader'), name='dispatch')
 class update_view(UpdateView):
     model = employee
     template_name = 'employee_update.html'  # 模板文件路径
@@ -171,19 +256,50 @@ class update_view(UpdateView):
         return kwargs
     def form_valid(self, form):
         employee = form.save()
+        level=4
         if employee.position=='普通员工' or employee.position=='试用员工':
             employee_group = Group.objects.get(name='employee')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='group_leader'))
+            employee.user.groups.remove(Group.objects.get(name='department_manager'))
+            employee.user.groups.remove(Group.objects.get(name='general_manager'))
+            if employee.position == '普通员工':
+                level = 4
+            else:
+                level = 5
         elif employee.position=='部门经理':
             employee_group = Group.objects.get(name='department_manager')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='group_leader'))
+            employee.user.groups.remove(Group.objects.get(name='employee'))
+            employee.user.groups.remove(Group.objects.get(name='general_manager'))
+            level = 2
         elif employee.position=='总经理':
             employee_group = Group.objects.get(name='general_manager')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='group_leader'))
+            employee.user.groups.remove(Group.objects.get(name='department_manager'))
+            employee.user.groups.remove(Group.objects.get(name='employee'))
+            level = 1
         elif employee.position=='员工组长':
             employee_group = Group.objects.get(name='group_leader')
             employee.user.groups.add(employee_group)
+            employee.user.groups.remove(Group.objects.get(name='department_manager'))
+            employee.user.groups.remove(Group.objects.get(name='general_manager'))
+            employee.user.groups.remove(Group.objects.get(name='employee'))
+            level = 3
         employee.save()
+        try:
+            salary = Salary.objects.get(id=employee.id)
+            salary.level = level
+            salary.save()
+        except Salary.DoesNotExist:
+            Salary.objects.create(
+                id=employee.id,
+                level=level,
+                bonus=0.00,
+                total_salary=None
+            )
         return super().form_valid(form)
     success_url = reverse_lazy('employee_list')  # 更新成功后重定向到列表视图
 
@@ -191,7 +307,7 @@ class update_view(UpdateView):
 from django.db.models import Q
 
 
-@method_decorator(group_required('department_manager', 'general_manager', 'employee'), name='dispatch')
+@method_decorator(group_required('department_manager', 'general_manager', 'employee','group_leader'), name='dispatch')
 class frontpage_view(LoginRequiredMixin, DetailView):
     model = employee  # 你的员工模型
     template_name = 'employee_frontpage.html'  # 渲染模板
@@ -208,29 +324,9 @@ class frontpage_view(LoginRequiredMixin, DetailView):
 
         # 将数据传递到模板
         context['salary_records'] = salary_records
-        # 处理每条 Salary 记录，确保空值为0，并根据公式计算 total_salary
         for salary in salary_records:
-            # 如果 total_salary 是 None 或者为空，计算它
-            if salary.total_salary is None:
-                # 如果 level 和 bonus 有值，计算 total_salary
-                bonus = salary.bonus if salary.bonus is not None else 0  # 将 bonus 为 None 的情况处理为 0
-                if salary.level is not None:
-                    try:
-                        # 获取对应的 SalaryStandard（假设 level 对应 SalaryStandard 的 id）
-                        salary_standard = SalaryStandard.objects.get(id=salary.level)
-                        basic_salary = salary_standard.basic_salary if salary_standard.basic_salary is not None else 0  # 将 basic_salary 为 None 的情况处理为 0
-                        # 计算 total_salary: basic_salary * level + bonus
-                        salary.total_salary = basic_salary + bonus
-                    except SalaryStandard.DoesNotExist:
-                        # 如果没有找到对应的 SalaryStandard，就设定 total_salary = bonus
-                        salary.total_salary = bonus
-                else:
-                    # 如果没有 level 信息，只计算奖金
-                    salary.total_salary = bonus
-
-            # 保存数据
             salary.save()
-
+        salary_records = Salary.objects.filter(id=id)
         # 将处理后的 salary_records 传入上下文
         context['salary_records'] = salary_records
         # 检查用户是否为组长、部门经理、总经理
@@ -243,3 +339,41 @@ class frontpage_view(LoginRequiredMixin, DetailView):
     def get_object(self, queryset=None):
         # 获取当前登录用户对应的员工对象
         return self.request.user.employee  # 通过 request.user 获取当前用户的 Employee 关联对象
+from django.shortcuts import render
+from django.views.generic import DetailView
+from .models import employee
+@method_decorator(group_required('department_manager', 'general_manager', 'group_leader'), name='dispatch')
+class EmployeeDetailView(DetailView):
+    model = employee
+    template_name = 'employee_detail.html'  # 创建新的模板
+    context_object_name = 'employee'  # 模板中使用 'employee' 来访问员工对象
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from salary.models import Salary
+from employee.models import employee
+from django.http import Http404
+@login_required
+def update_bonus(request, employee_id):
+    try:
+        # 获取员工对象
+        em = employee.objects.get(id=employee_id)
+    except employee.DoesNotExist:
+        raise Http404("Employee not found")
+
+    # 获取或创建对应的 Salary 对象
+    salary, created = Salary.objects.get_or_create(id=em.id)
+
+    if request.method == 'POST':
+        # 获取表单提交的奖金值
+        bonus = request.POST.get('bonus')
+
+        if bonus:
+            # 更新奖金字段
+            salary.bonus = decimal.Decimal(bonus)
+            # 调用实例方法保存
+            salary.save()  # 自动调用自定义的 save() 方法，计算 total_salary
+
+        return redirect('employee_detail', em.id)  # 更新后重定向到员工详情页
+
+    return redirect('employee_list')  # 如果不是 POST 请求，返回员工列表

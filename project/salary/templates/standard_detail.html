@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     {% load static %} <!-- 加载 static 模板标签 -->
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工资标准列表</title>
@@ -11,28 +11,150 @@
     <h1>工资标准列表</h1>
     <table>
         <thead>
-            <tr>
-                <th>编号</th>
-                <th>名称</th>
-                <th>创建人</th>
-                <th>创建日期</th>
-                <th>基本工资</th>
-                <th>状态</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for standard in standards %}
-            <tr>
-                <td>{{ standard.standard_no }}</td>
-                <td>{{ standard.standard_name }}</td>
-                <td>{{ standard.creator }}</td>
-                <td>{{ standard.creation_date }}</td>
-                <td>{{ standard.basic_salary }}</td>
-                <td>{{ standard.standard_status }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+    <tr>
+        <th>编号</th>
+        <th>名称</th>
+        <th>创建人</th>
+        <th>创建日期</th>
+        <th>基本工资</th>
+        <th>状态</th>
+        {% if is_general_manager %} <!-- 使用传递的布尔变量 -->
+        <th>操作</th>
+        {% endif %}
+    </tr>
+</thead>
+<tbody>
+    {% for standard in standards %}
+    <tr>
+        <td>{{ standard.standard_no }}</td>
+        <td>{{ standard.standard_name }}</td>
+        <td>{{ standard.creator }}</td>
+        <td>{{ standard.creation_date }}</td>
+        <td>{{ standard.basic_salary }}</td>
+        <td>{{ standard.standard_status }}</td>
+        {% if is_general_manager %} <!-- 使用传递的布尔变量 -->
+        <td>
+            <form method="post" action="{% url 'update_salary_standard' standard.standard_no %}">
+                {% csrf_token %}
+
+                <label for="standard_name_{{ standard.standard_no }}">名称：</label>
+                <input
+                    type="text"
+                    id="standard_name_{{ standard.standard_no }}"
+                    name="standard_name"
+                    value="{{ standard.standard_name }}">
+                <br>
+
+                <label for="basic_salary_{{ standard.standard_no }}">基本工资：</label>
+                <input
+                    type="number"
+                    id="basic_salary_{{ standard.standard_no }}"
+                    name="basic_salary"
+                    value="{{ standard.basic_salary }}"
+                    step="0.01">
+                <br>
+
+                <label for="late_deduction_{{ standard.standard_no }}">迟到扣款：</label>
+                <input
+                    type="number"
+                    id="late_deduction_{{ standard.standard_no }}"
+                    name="late_deduction"
+                    value="{{ standard.late_deduction }}"
+                    step="0.01">
+                <br>
+
+                <label for="absence_deduction_{{ standard.standard_no }}">缺勤扣款：</label>
+                <input
+                    type="number"
+                    id="absence_deduction_{{ standard.standard_no }}"
+                    name="absence_deduction"
+                    value="{{ standard.absence_deduction }}"
+                    step="0.01">
+                <br>
+
+                <label for="full_attendance_bonus_{{ standard.standard_no }}">全勤奖：</label>
+                <input
+                    type="number"
+                    id="full_attendance_bonus_{{ standard.standard_no }}"
+                    name="full_attendance_bonus"
+                    value="{{ standard.full_attendance_bonus }}"
+                    step="0.01">
+                <br>
+
+                <label for="standard_status_{{ standard.standard_no }}">状态：</label>
+                <select id="standard_status_{{ standard.standard_no }}" name="standard_status">
+                    <option value="有效" {% if standard.standard_status == "有效" %}selected{% endif %}>有效</option>
+                    <option value="无效" {% if standard.standard_status == "无效" %}selected{% endif %}>无效</option>
+                </select>
+                <br>
+
+                <button type="submit">更新</button>
+            </form>
+        </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</tbody>
+
     </table>
-    <button onclick="window.history.back()">返回</button>
+    {% if is_general_manager %}
+    <button onclick="window.location.href='{% url 'standard_settings' %}'">设置工资标准</button> <!-- 设置按钮 -->
+    {% endif %}
+    <button onclick="window.location.href='{% url 'employee_frontpage' %}'">返回</button>
 </body>
 </html>
+
+<style>
+    /* list.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f9f9f9;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #fff;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+button {
+    margin: 10px 5px;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+</style>

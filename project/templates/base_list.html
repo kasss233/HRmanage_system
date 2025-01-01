@@ -10,7 +10,13 @@
     <link rel="stylesheet" href="{% static 'list.css' %}">
 </head>
 <body>
-
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
     <!-- 页面头部 -->
     <header>
         {% block header %}
@@ -22,7 +28,7 @@
                 <li><a href="{% url 'sign' %}">签到签退</a></li>
                 <li><a href="{% url 'attendance_list' %}">考勤表单</a></li>
                 <li><a href="{% url 'employee_list' %}">员工管理</a></li>
-                <li><a href="{% url 'employee_create' %}">新增员工</a></li>
+                <li><a href="{% url 'group_management' %}">小组管理</a></li>
                 
             </ul>
         </nav>

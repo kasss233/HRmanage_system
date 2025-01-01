@@ -21,6 +21,11 @@ class AttendanceFilterForm(forms.Form):
         ('人力资源部', '人力资源部'),
         ('法务部', '法务部'),
     ]
+    id = forms.IntegerField(
+        required=False,
+        label='员工ID',
+        widget=forms.TextInput(attrs={'placeholder': '请输入员工ID'})
+    )
     name = forms.CharField(
         required=False,
         label='员工姓名',
@@ -28,17 +33,6 @@ class AttendanceFilterForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': '请输入姓名'})
     )
     # 添加员工ID搜索框
-    id = forms.IntegerField(
-        required=False,
-        label='员工ID',
-        widget=forms.TextInput(attrs={'placeholder': '请输入员工ID'})
-    )
-    employee = forms.ModelChoiceField(
-        queryset=employee.objects.all(),
-        required=False,
-        label='员工',
-        empty_label="所有员工"
-    )
     start_date = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'}),
@@ -51,11 +45,11 @@ class AttendanceFilterForm(forms.Form):
     )
     
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select,label='部门',required=False)
+    group=forms.CharField(max_length=100,required=False,label='组名')
     # 提供筛选的默认值
     def __init__(self, *args, **kwargs):
         user=kwargs.pop('user',None)
         super().__init__(*args, **kwargs)
-        self.fields['employee'].queryset = employee.objects.all()
         if user:
             if user.groups.filter(name='department_manager').exists():
                 employee_obj = employee.objects.get(user=user)
@@ -68,16 +62,20 @@ class AttendanceFilterForm(forms.Form):
                 self.fields['department'].disabled = True  # 禁用字段，不可编辑
                 # 使用 TextInput 显示部门名称，并使其不可编辑
                 self.fields['department'].widget = TextInput(attrs={'value': current_department, 'readonly': 'readonly'})
-            if user.groups.filter(name='general_manager').exists():
+            elif user.groups.filter(name='general_manager').exists():
                 pass
             elif user.groups.filter(name='employee').exists():
                 employee_obj = employee.objects.get(user=user)
-                self.fields['employee'].queryset = employee.objects.filter(id=employee_obj.id)
-                self.fields['employee'].initial = employee_obj
+                self.fields['group'].disabled = True  # 禁用字段，不可编辑
                 self.fields['department'].disabled = True
                 self.fields['name'].disabled = True
                 self.fields['id'].disabled = True
-                self.fields['employee'].disabled = True
+            elif user.groups.filter(name='group_leader').exists():
+                employee_obj = employee.objects.get(user=user)
+                self.fields['group'].disabled = True  # 禁用字段，不可编辑
+                self.fields['group'].initial = employee_obj.group  # 设置默认值为当前用户所属的组
+                self.fields['department'].disabled = True
+
 
 
     def filter_employees(self):

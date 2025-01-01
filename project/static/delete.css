@@ -198,6 +198,7 @@ footer {
     bottom: 0;
     width: 100%;
     box-sizing: border-box;
+    height: 50px;
 }
 
 /* 响应式设计 */

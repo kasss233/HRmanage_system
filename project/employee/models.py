@@ -16,6 +16,7 @@ class employee(models.Model):
     address=models.CharField(max_length=100)
     department=models.CharField(max_length=100,null=True)
     position=models.CharField(max_length=100,null=True)
-
+    details=models.TextField(null=True)
+    group = models.ForeignKey('group.Group', on_delete=models.SET_NULL, null=True, related_name='employees')
     def __str__(self):
         return self.name

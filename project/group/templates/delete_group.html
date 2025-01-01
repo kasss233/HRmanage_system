@@ -1,0 +1,15 @@
+<!-- templates/group/delete_group.html -->
+{% extends 'base_delete.html' %}
+
+{% block content %}
+  <div class="container">
+    <h2>确认删除小组</h2>
+    <p>您确认要删除小组 "<strong>{{ group.name }}</strong>" 吗？</p>
+    <p>删除小组后，该小组的所有信息将被永久删除。</p>
+    <form method="POST" action="{% url 'delete_group' pk=group.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除该小组吗?')">确认删除</button>
+        <a href="{% url 'group_management' %}" class="btn btn-cancel"style="display: block; text-align: center;">取消</a>
+    </form>
+  </div>
+{% endblock %}
