@@ -50,7 +50,6 @@ class EmployeeFilterForm(forms.Form):
             self.fields['department'].disabled = True  # 禁用字段，不可编辑
 
 class EmployeeForm(forms.ModelForm):
-    id=forms.IntegerField(widget=forms.HiddenInput(),required=False,label='员工ID')
     name=forms.CharField(max_length=100,label='姓名')
     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select,label='性别')
     birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2100)),label='出生日期')
