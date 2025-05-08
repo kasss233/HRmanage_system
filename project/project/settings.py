@@ -81,12 +81,8 @@ WSGI_APPLICATION = "project.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "test",
-        "USER": "test",
-        "PASSWORD": "123123123",
-        "HOST": "ljc666.pro",
-        "PORT": "3306",
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",  # SQLite 数据库文件路径
     }
 }
 
