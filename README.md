@@ -87,5 +87,6 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
-
-使用默认总经理账号：1密码：1进行登录
+## 账号相关
+使用默认总经理账号：1 密码：1 进行登录。
+创建员工时员工id即为默认的账号与密码。
