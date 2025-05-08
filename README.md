@@ -1,4 +1,3 @@
-
 # 人力资源管理系统
 
 ## 项目简介
@@ -47,11 +46,12 @@
 - **前端**: HTML、CSS（Bootstrap）、JavaScript
 - **环境**: Python 3.12
 
-
 ---
 
 ## 安装与运行
+
 ### 1. 克隆项目
+
 ```bash
 git clone https://github.com/your-repo/hr-management-system.git
 cd hr_management_system
@@ -59,7 +59,9 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r [requirements.txt](http://_vscodecontentref_/0)
 ```
-在 settings.py 中修改数据库配置：
+
+在 settings.py 中修改数据库配置（默认使用sqlite）：
+
 ```
 DATABASES = {
     "default": {
@@ -72,12 +74,18 @@ DATABASES = {
     }
 }
 ```
+
 运行迁移
+
 ```
 python manage.py makemigrations
 python manage.py migrate
 ```
+
 启动开发服务器
+
 ```
 python manage.py runserver
 ```
+
+使用默认总经理账号：1密码：1进行登录
